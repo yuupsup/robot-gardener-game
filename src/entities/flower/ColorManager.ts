@@ -33,27 +33,14 @@ export default class ColorManager {
     this.colorCombo.set("GWY", ColorConstants.Color.BLUE);
   }
 
-  getColorCharacter(color:number) : string {
-    switch (color) {
-      case ColorConstants.Color.RED: return "R";
-      case ColorConstants.Color.YELLOW: return "Y";
-      case ColorConstants.Color.BLUE: return "B";
-      case ColorConstants.Color.PURPLE: return "P";
-      case ColorConstants.Color.ORANGE: return "O";
-      case ColorConstants.Color.GREEN: return "G";
-      case ColorConstants.Color.WHITE: return "W";
-    }
-    return "";
-  }
-
   /**
    * @param colorA
    * @param colorB
    * @param isWhite the two colors are combined with white
    */
   getCombinedColor(colorA:number, colorB:number, isWhite:boolean) : number {
-    const colorCharacters = this.getColorCharacter(colorA) + (isWhite ? "W" : "") + this.getColorCharacter(colorB);
-    const colorCharactersReversed = this.getColorCharacter(colorB) + (isWhite ? "W" : "") + this.getColorCharacter(colorA);
+    const colorCharacters = ColorConstants.getColorCharacter(colorA) + (isWhite ? "W" : "") + ColorConstants.getColorCharacter(colorB);
+    const colorCharactersReversed = ColorConstants.getColorCharacter(colorB) + (isWhite ? "W" : "") + ColorConstants.getColorCharacter(colorA);
 
     // check both character orders
     let color = ColorConstants.Color.NONE

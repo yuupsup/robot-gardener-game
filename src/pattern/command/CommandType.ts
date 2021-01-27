@@ -11,7 +11,8 @@ export const CommandType = {
   },
   Level: {
     NEXT_LEVEL: 50,
-    RESTART: 51
+    RESTART: 51,
+    CHECK_COMBINATION: 52
   },
   Dialog: {
     PAUSE: 100,

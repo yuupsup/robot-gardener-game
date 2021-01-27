@@ -8,6 +8,8 @@ import TileManager from "../../tile/TileManager";
 import EntityManager from "../manager/EntityManager";
 import {GameConstants} from "../../GameConstants";
 import {TileUtils} from "../../tile/TileUtils";
+import Command from "../../pattern/command/Command";
+import {CommandType} from "../../pattern/command/CommandType";
 
 export default class Flower extends GridEntity {
   color:number;
@@ -33,7 +35,7 @@ export default class Flower extends GridEntity {
       const anim = scene.anims.get('flower');
       this.anims.setCurrentFrame(anim.frames[this.color]);
     }
-    this.colorChar = GameController.instance(scene).getColorManager().getColorCharacter(this.color);
+    this.colorChar = ColorConstants.getColorCharacter(this.color);
 
     this.pickup = config.pickup || true;
     this.holder = null;
@@ -110,8 +112,10 @@ export default class Flower extends GridEntity {
    * @param ydir
    */
   createAdjacent(xdir:number, ydir:number) {
+    const levelManager = GameController.instance(this.scene).getLevelManager(this.scene);
     const colorManager = GameController.instance(this.scene).getColorManager();
     const tileSize = GameConstants.Tile.SIZE;
+    let colorMix = ""; // holds the character representation of the colors involved
 
     const entity:any = this.findAdjacent(xdir, ydir);
     if (entity) {
@@ -126,9 +130,11 @@ export default class Flower extends GridEntity {
       if (this.isWhite() && entity.isRBY() && (prevAdjEntity && !prevAdjEntity.isWhite() && !prevAdjEntity.isRBY())) { // white in between colors
         // get the new color
         color = colorManager.getCombinedColor(entity.color, prevAdjEntity.color, true);
+        colorMix = entity.colorChar + ColorConstants.getColorCharacter(ColorConstants.Color.WHITE) + prevAdjEntity.colorChar;
       } else if (!this.isWhite() && entity.isWhite() && (nextAdjEntity && !nextAdjEntity.isWhite())) { // adjacent color is white, next is not
         // get the new color
         color = colorManager.getCombinedColor(this.color, nextAdjEntity.color, true);
+        colorMix = this.colorChar + ColorConstants.getColorCharacter(ColorConstants.Color.WHITE) + nextAdjEntity.colorChar;
         if (ColorConstants.isColor(color)) {
           const rby = this.isRBY() ? this : nextAdjEntity;
           // find the direction for new instance
@@ -140,6 +146,7 @@ export default class Flower extends GridEntity {
       } else if (!nextAdjEntity && !entity.isTileAdjacent(xdir, ydir)) { // color mix
         // get the new color
         color = colorManager.getCombinedColor(this.color, entity.color, false);
+        colorMix = this.colorChar + entity.colorChar;
       }
       // color is valid, and no entity or tile collision
       if (ColorConstants.isColor(color) && this.isFree(pos)) {
@@ -156,6 +163,11 @@ export default class Flower extends GridEntity {
           color: color,
           texture: 'flower'
         });
+
+        GameController.instance(this.scene).getCommandManager(this.scene).add(new Command(CommandType.Level.CHECK_COMBINATION).addData({
+          colorMix: colorMix,
+          index: levelManager.getTodoIndex()
+        }));
         // todo NOTE, the grid positions for the created entity are not stored in the EntityManager until the NEXT update
       }
     }
