@@ -14,6 +14,8 @@ export default class ColorManager {
     this.colorCombo.set("OO", ColorConstants.Color.ORANGE);
     this.colorCombo.set("GG", ColorConstants.Color.GREEN);
 
+    this.colorCombo.set("WW", ColorConstants.Color.WHITE);
+
     // mix
     this.colorCombo.set("RB", ColorConstants.Color.PURPLE);
     this.colorCombo.set("RY", ColorConstants.Color.ORANGE);

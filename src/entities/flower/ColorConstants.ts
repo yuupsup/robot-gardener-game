@@ -8,5 +8,8 @@ export const ColorConstants = {
     YELLOW: 4,
     ORANGE: 5,
     WHITE: 6
+  },
+  isColor: function(color:number) : boolean {
+    return color !== ColorConstants.Color.NONE;
   }
 };

@@ -7,6 +7,7 @@ import Entity from "../Entity";
 import TileManager from "../../tile/TileManager";
 import EntityManager from "../manager/EntityManager";
 import {GameConstants} from "../../GameConstants";
+import {TileUtils} from "../../tile/TileUtils";
 
 export default class Flower extends GridEntity {
   color:number;
@@ -63,20 +64,42 @@ export default class Flower extends GridEntity {
     this.setPosition(tpos.x, tpos.y);
 
     // create the adjacent instance
-    if (this.color === ColorConstants.Color.WHITE) {
-      // todo need to have extra logic for WHITE flower
-    } else {
-      this.createAdjacent(-1,  0); // left
-      this.createAdjacent( 0, -1); // top
-      this.createAdjacent( 1,  0); // right
-      this.createAdjacent( 0,  1); // bottom
+    this.createAdjacent(-1,  0); // left
+    this.createAdjacent( 0, -1); // top
+    this.createAdjacent( 1,  0); // right
+    this.createAdjacent( 0,  1); // bottom
+  }
+
+  isRBY() : boolean {
+    switch(this.color) {
+      case ColorConstants.Color.RED:
+      case ColorConstants.Color.BLUE:
+      case ColorConstants.Color.YELLOW:
+        return true;
     }
+    return false;
+  }
+
+  isWhite() : boolean {
+    return this.color === ColorConstants.Color.WHITE;
   }
 
   findAdjacent(xdir:number, ydir:number) : Entity|null {
     const x = this.x + GameConstants.Tile.SIZE * xdir;
     const y = this.y + GameConstants.Tile.SIZE * ydir;
     return EntityManager.instance(this.scene).getEntityAtGridPosition(x, y, EntityConstants.Type.FLOWER, this);
+  }
+
+  isTileAdjacent(xdir:number, ydir:number) : boolean {
+    const tileSize = GameConstants.Tile.SIZE;
+    const tile = TileManager.getTileAtPosition(this.x + tileSize * xdir, this.y + tileSize * ydir, TileUtils.Layer.COLLISION, this.scene);
+    return tile !== null && tile.index >= 0;
+  }
+
+  isFree(pos:any) : boolean {
+    const entity = EntityManager.instance(this.scene).getEntityAtGridPosition(pos.x, pos.y, EntityConstants.Type.FLOWER, this);
+    const tile = TileManager.getTileAtPosition(pos.x, pos.y, TileUtils.Layer.COLLISION, this.scene);
+    return !entity && !(tile !== null && tile.index >= 0);
   }
 
   /**
@@ -87,17 +110,44 @@ export default class Flower extends GridEntity {
    * @param ydir
    */
   createAdjacent(xdir:number, ydir:number) {
+    const colorManager = GameController.instance(this.scene).getColorManager();
+    const tileSize = GameConstants.Tile.SIZE;
+
     const entity:any = this.findAdjacent(xdir, ydir);
-    if (entity && !entity.findAdjacent(xdir, ydir)) {
-      // get the new color
-      const colorManager = GameController.instance(this.scene).getColorManager();
-      const color = colorManager.getCombinedColor(this.color, entity.color, false);
-      if (color !== ColorConstants.Color.NONE) {
+    if (entity) {
+      let color = ColorConstants.Color.NONE;
+      const pos = {
+        x: entity.x + tileSize * xdir,
+        y: entity.y + tileSize * ydir
+      };
+      const nextAdjEntity:any = entity.findAdjacent(xdir, ydir);
+      const prevAdjEntity:any = this.findAdjacent(xdir * -1, ydir * -1); // opposite adjacent entity
+
+      if (this.isWhite() && entity.isRBY() && (prevAdjEntity && !prevAdjEntity.isWhite() && !prevAdjEntity.isRBY())) { // white in between colors
+        // get the new color
+        color = colorManager.getCombinedColor(entity.color, prevAdjEntity.color, true);
+      } else if (!this.isWhite() && entity.isWhite() && (nextAdjEntity && !nextAdjEntity.isWhite())) { // adjacent color is white, next is not
+        // get the new color
+        color = colorManager.getCombinedColor(this.color, nextAdjEntity.color, true);
+        if (ColorConstants.isColor(color)) {
+          const rby = this.isRBY() ? this : nextAdjEntity;
+          // find the direction for new instance
+          const dx = xdir !== 0 ? (rby.x > entity.x ? 1 : -1) : 0;
+          const dy = ydir !== 0 ? (rby.y > entity.y ? 1 : -1) : 0;
+          pos.x = rby.x + tileSize * dx;
+          pos.y = rby.y + tileSize * dy;
+        }
+      } else if (!nextAdjEntity && !entity.isTileAdjacent(xdir, ydir)) { // color mix
+        // get the new color
+        color = colorManager.getCombinedColor(this.color, entity.color, false);
+      }
+      // color is valid, and no entity or tile collision
+      if (ColorConstants.isColor(color) && this.isFree(pos)) {
         // create a new flower instance
         new Flower({
           scene: this.scene,
-          x: entity.x + GameConstants.Tile.SIZE * xdir,
-          y: entity.y + GameConstants.Tile.SIZE * ydir,
+          x: pos.x,
+          y: pos.y,
           width: entity.getWidth(),
           height: entity.getHeight(),
           xoffset: entity.getWidth() * 0.5,
