@@ -3,18 +3,13 @@ import {SceneConstants} from "./SceneConstants";
 import {CommandType} from "../pattern/command/CommandType";
 import GameController from "../GameController";
 import EntityManager from "../entities/manager/EntityManager";
-import Player from "../entities/player/Player";
 import {GameConstants} from "../GameConstants";
-import Flower from "../entities/flower/Flower";
 
 export default class LevelScene extends Phaser.Scene {
-  player:Player|null;
   entityManager:EntityManager;
 
   constructor() {
     super(SceneConstants.Scenes.LEVEL);
-    this.player = null;
-
     this.entityManager = new EntityManager(this);
   }
 
@@ -45,6 +40,7 @@ export default class LevelScene extends Phaser.Scene {
       inputManager.addKey(this, Phaser.Input.Keyboard.KeyCodes.DOWN);
       inputManager.addKey(this, Phaser.Input.Keyboard.KeyCodes.C);
       inputManager.addKey(this, Phaser.Input.Keyboard.KeyCodes.R);
+      inputManager.addKey(this, Phaser.Input.Keyboard.KeyCodes.ENTER);
 
       inputManager.enableMouse(this);
     }
@@ -85,6 +81,19 @@ export default class LevelScene extends Phaser.Scene {
         gameController.getLevelManager(self).createLevel();
       };
     })(this), null);
+
+    gameController.onEvent(SceneConstants.Events.LEVEL_PAUSE, (function (self:Phaser.Scene) {
+      return function () {
+        self.scene.pause(SceneConstants.Scenes.LEVEL);
+        GameController.instance(self).emitEvent(SceneConstants.Events.PAUSE, {pausedScene: self.scene.key});
+      };
+    })(this), null);
+
+    gameController.onEvent(SceneConstants.Events.LEVEL_RESUME, (function (self:Phaser.Scene) {
+      return function () {
+        self.scene.resume(SceneConstants.Scenes.LEVEL);
+      };
+    })(this), null);
   }
 
   createAnimations() {
@@ -96,6 +105,16 @@ export default class LevelScene extends Phaser.Scene {
       key: 'flower',
       repeat: 0,
       frames: this.anims.generateFrameNumbers('flower', {start: 0, end: 6}),
+      frameRate: 0
+    });
+
+    /**
+     * Color Letters
+     */
+    this.anims.create({
+      key: 'color-letters',
+      repeat: 0,
+      frames: this.anims.generateFrameNumbers('color-letters', {start: 0, end: 6}),
       frameRate: 0
     });
   }

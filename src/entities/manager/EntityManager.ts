@@ -240,7 +240,7 @@ export default class EntityManager {
 
     const levelManager = gameController.getLevelManager(this.scene);
     if (levelManager) {
-      levelManager.update();
+      levelManager.update(time, delta);
     }
 
     // preupdate

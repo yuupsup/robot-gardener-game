@@ -22,4 +22,8 @@ export default class TodoItem {
   getMix() : string {
     return this.colorMix;
   }
+
+  size() : number {
+    return this.colors.length;
+  }
 }

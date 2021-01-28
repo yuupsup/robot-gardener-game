@@ -14,7 +14,8 @@ export const GameConstants = {
     HALF_SIZE: 8
   },
   Font: {
-    FONT: "dogica"
+    FONT: "pixilator",
+    SIZE: 8
   },
   Direction: {
     NONE: 0,

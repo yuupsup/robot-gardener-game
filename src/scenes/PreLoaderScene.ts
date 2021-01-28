@@ -18,6 +18,14 @@ export default class PreLoaderScene extends Phaser.Scene {
     this.load.json("level1", "levels/level1.json");
 
     /**
+     * Images
+     */
+    this.load.image("textbox", "assets/images/textbox.png");
+    this.load.image("screen-overlay", "assets/images/screen-overlay.png");
+    this.load.image("todo-item", "assets/images/todo-item.png");
+    this.load.image("cross", "assets/images/cross.png");
+
+    /**
      * Sprites
      */
     this.load.spritesheet("player", "assets/images/player-mask.png", {frameWidth: 16, frameHeight: 16});
@@ -25,6 +33,7 @@ export default class PreLoaderScene extends Phaser.Scene {
     // this.load.spritesheet("tile-select", "assets/images/tile-select.png", {frameWidth: 20, frameHeight: 20});
     this.load.spritesheet("tile-select", "assets/images/tile-select2.png", {frameWidth: 16, frameHeight: 16});
     this.load.spritesheet("color-wheel", "assets/images/color-wheel.png", {frameWidth: 17, frameHeight: 17});
+    this.load.spritesheet("color-letters", "assets/images/color-letters.png", {frameWidth: 5, frameHeight: 6});
     /**
      * SFX
      */
@@ -34,7 +43,7 @@ export default class PreLoaderScene extends Phaser.Scene {
     /**
      * Font
      */
-    // this.load.bitmapFont('dogica', "assets/font/dogica.png", "assets/font/dogica.xml");
+    this.load.bitmapFont('pixilator', "assets/fonts/pixilator.png", "assets/fonts/pixilator.xml");
   }
 
   create() {

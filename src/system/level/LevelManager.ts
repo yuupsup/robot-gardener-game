@@ -4,12 +4,12 @@ import {EntityConstants} from "../../entities/EntityConstants";
 import {LevelProperties} from "./LevelProperties";
 import {TileUtils} from "../../tile/TileUtils";
 import {CommandType} from "../../pattern/command/CommandType";
-import Command from "../../pattern/command/Command";
 import GameController from "../../GameController";
 import Player from "../../entities/player/Player";
-import EntityManager from "../../entities/manager/EntityManager";
 import Flower from "../../entities/flower/Flower";
+import EntityManager from "../../entities/manager/EntityManager";
 import TodoManager from "../../entities/manager/todo/TodoManager";
+import Command from "../../pattern/command/Command";
 
 /**
  * Holds information related to the current level.
@@ -29,7 +29,7 @@ export default class LevelManager {
     this.level = 0;
     this.next = false;
 
-    this.todoManager = new TodoManager();
+    this.todoManager = new TodoManager(scene);
   }
 
   createLevel() {
@@ -51,9 +51,10 @@ export default class LevelManager {
         const todo = data.todo[i];
         this.todoManager.add(...todo.colors);
       }
+      // setup the item display
+      this.todoManager.updateLetterDisplay();
+      this.todoManager.setMoveIn();
     }
-    // todo remove
-    console.log(this.todoManager.get());
   }
 
   /**
@@ -104,21 +105,27 @@ export default class LevelManager {
     }
   }
 
-  update() {
-
+  update(time:number, delta:number) {
+    const gameController = GameController.instance(this.scene);
+    const inputManager = gameController.getInputManager(this.scene);
+    if (inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.ENTER)) {
+      gameController.emitEvent(SceneConstants.Events.LEVEL_PAUSE);
+    }
+    // item manager
+    this.todoManager.update(time, delta);
   }
 
   postUpdate() {
     // restart level (only when the request to move to next level has not been made)
     // todo remove the restart button
-    const inputManager = GameController.instance(this.scene).getInputManager(this.scene);
-    if (inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.R) && !this.next) {
-      // clear all commands
-      const commandManager = GameController.instance(this.scene).getCommandManager(this.scene);
-      commandManager.clear();
-      commandManager.addStatic(CommandType.Entity.PAUSE);
-      commandManager.addStatic(CommandType.Level.RESTART);
-    }
+    // const inputManager = GameController.instance(this.scene).getInputManager(this.scene);
+    // if (inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.R) && !this.next) {
+    //   // clear all commands
+    //   const commandManager = GameController.instance(this.scene).getCommandManager(this.scene);
+    //   commandManager.clear();
+    //   commandManager.addStatic(CommandType.Entity.PAUSE);
+    //   commandManager.addStatic(CommandType.Level.RESTART);
+    // }
   }
 
   /**
@@ -138,16 +145,18 @@ export default class LevelManager {
     } else if (command.type === CommandType.Level.CHECK_COMBINATION && !this.complete && this.getTodoIndex() === command.data.index) {
       // level cannot be completed & the color mix must be for the current item index
       const colorMix = command.data.colorMix; // holds the colors involved
-      const currentMix = this.todoManager.get();
+      const currentMix = this.todoManager.getMix();
 
       if (colorMix === currentMix || colorMix.split("").reverse().join("") === currentMix) {
         if (this.todoManager.hasNext()) {
           this.todoManager.next();
-          console.log(this.todoManager.get());
+          console.log(this.todoManager.getMix());
         } else {
           console.log("level completed");
           this.complete = true;
+          this.todoManager.done = true;
         }
+        this.todoManager.setMoveOut();
         // todo need to play "correct" sound
       } else {
         console.log("Incorrect");

@@ -26,6 +26,8 @@ export const SceneConstants = {
     LEVEL: 4
   },
   Events: {
+    PAUSE: "ev-pause",
+    UNPAUSE: "ev-unpause",
     SHOW_LOCK_UNLOCK: "ev-lock-unlock",
     RETURN_LOCK_UNLOCK: "ev-rtn-lock-unlock",
     OPEN_MAIN_MENU: "ev-open-main-menu",
@@ -33,6 +35,8 @@ export const SceneConstants = {
     START_CUTSCENE: "ev-start-cutscene",
     START_GAME: "ev-start-game",
     START_LEVEL: "ev-start-level",
+    LEVEL_PAUSE: "ev-level-pause",
+    LEVEL_RESUME: "ev-level-resume",
     LEVEL_COMPLETE: "ev-level-complete",
     PREPARE_RESTART_LEVEL: "ev-prep-level-restart",
     RESTART_LEVEL: "ev-level-restart",

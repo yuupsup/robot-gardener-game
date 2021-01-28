@@ -20,8 +20,8 @@ export default class GameScene extends Phaser.Scene {
     const gameController = GameController.instance(this);
     gameController.setAudioManager(new AudioManager(this));
 
-    this.scene.run(SceneConstants.Scenes.HUD);
+    this.scene.run(SceneConstants.Scenes.UI);
     this.scene.run(SceneConstants.Scenes.LEVEL);
-    this.scene.moveBelow(SceneConstants.Scenes.LEVEL, SceneConstants.Scenes.HUD);
+    this.scene.moveBelow(SceneConstants.Scenes.LEVEL, SceneConstants.Scenes.UI);
   }
 }

@@ -25,6 +25,10 @@ export const Easing = {
     return t * (2 - t);
   },
 
+  easeInExpo: function(t:number) : number {
+    return t === 0 ? 0 : Math.pow(2, 10 * (t - 1))
+  },
+
   easeOutExpo: function(t:number) : number {
     return (t === 1) ? 1 : -Math.pow(2, -10 * t) + 1;
   },
