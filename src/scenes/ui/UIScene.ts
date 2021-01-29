@@ -23,7 +23,7 @@ export default class UIScene extends Phaser.Scene {
       return function (data) {
         self.scene.sleep(SceneConstants.Scenes.PAUSE);
         if (data.pausedScene === SceneConstants.Scenes.LEVEL) {
-          GameController.instance(self).emitEvent(SceneConstants.Events.LEVEL_RESUME);
+          GameController.instance(self).emitEvent(SceneConstants.Events.LEVEL_RESUME, data);
           self.scene.moveBelow(SceneConstants.Scenes.LEVEL, SceneConstants.Scenes.PAUSE); // need to move the scene below
         }
       };

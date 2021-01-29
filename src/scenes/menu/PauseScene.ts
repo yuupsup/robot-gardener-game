@@ -9,6 +9,9 @@ export default class PauseScene extends Phaser.Scene {
   restartText:Phaser.GameObjects.BitmapText|null;
   skipSceneText:Phaser.GameObjects.BitmapText|null;
 
+  select:number; // continue or restart/skip scene
+  selectText:Phaser.GameObjects.BitmapText|null;
+
   screenOverlay:Phaser.GameObjects.Image|null;
 
   pausedScene:string; // holds key to the scene that paused
@@ -21,6 +24,9 @@ export default class PauseScene extends Phaser.Scene {
     this.restartText = null;
     this.skipSceneText = null;
 
+    this.select = 1; // continue
+    this.selectText = null;
+
     this.screenOverlay = null;
 
     this.pausedScene = "";
@@ -28,6 +34,7 @@ export default class PauseScene extends Phaser.Scene {
 
   create(data) {
     this.pausedScene = data.pausedScene;
+
     const gameController = GameController.instance(this);
     gameController.registerSystem(this, SceneConstants.Systems.INPUT);
     gameController.registerSystem(this, SceneConstants.Systems.CAMERA);
@@ -38,7 +45,6 @@ export default class PauseScene extends Phaser.Scene {
     const inputManager = gameController.getInputManager(this);
     inputManager.addKey(this, Phaser.Input.Keyboard.KeyCodes.UP);
     inputManager.addKey(this, Phaser.Input.Keyboard.KeyCodes.DOWN);
-    inputManager.addKey(this, Phaser.Input.Keyboard.KeyCodes.C); // action button
     inputManager.addKey(this, Phaser.Input.Keyboard.KeyCodes.ENTER);
 
     /**
@@ -63,11 +69,19 @@ export default class PauseScene extends Phaser.Scene {
 
     this.skipSceneText = this.add.bitmapText(GameConstants.Screen.ROOM_WIDTH * 0.5, GameConstants.Screen.ROOM_HEIGHT * 0.47, GameConstants.Font.FONT, "Skip Scene", GameConstants.Font.SIZE);
     this.skipSceneText.setOrigin(0.5);
+    this.skipSceneText.setDropShadow(1, 1, 0x211E20, 1);
 
-    if (this.pausedScene === SceneConstants.Scenes.LEVEL) {
-      this.skipSceneText.setVisible(false);
-    } else {
+    // current on continue
+    this.selectText = this.add.bitmapText(GameConstants.Screen.ROOM_WIDTH * 0.35, GameConstants.Screen.ROOM_HEIGHT * 0.4, GameConstants.Font.FONT, ">", GameConstants.Font.SIZE);
+    this.selectText.setOrigin(0.5);
+    this.selectText.setDropShadow(1, 1, 0x211E20, 1);
+
+    if (data.tutorial) {
+      this.skipSceneText.setVisible(true);
       this.restartText.setVisible(false);
+    } else {
+      this.restartText.setVisible(true);
+      this.skipSceneText.setVisible(false);
     }
 
     /**
@@ -75,6 +89,16 @@ export default class PauseScene extends Phaser.Scene {
      */
     this.events.on('wake', function(sys, data) {
       this.pausedScene = data.pausedScene;
+      this.select = 1;
+      this.selectText.setPosition(GameConstants.Screen.ROOM_WIDTH * 0.35, GameConstants.Screen.ROOM_HEIGHT * 0.4);
+
+      if (data.tutorial) {
+        this.skipSceneText.setVisible(true);
+        this.restartText.setVisible(false);
+      } else {
+        this.restartText.setVisible(true);
+        this.skipSceneText.setVisible(false);
+      }
     }, this);
   }
 
@@ -85,7 +109,13 @@ export default class PauseScene extends Phaser.Scene {
     inputManager.update();
 
     if (inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.ENTER)) {
-      gameController.emitEvent(SceneConstants.Events.UNPAUSE, {pausedScene: this.pausedScene});
+      gameController.emitEvent(SceneConstants.Events.UNPAUSE, {pausedScene: this.pausedScene, continue: this.select});
+    } else if (inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.UP)) {
+      this.select = 1;
+      this.selectText.setPosition(GameConstants.Screen.ROOM_WIDTH * 0.35, GameConstants.Screen.ROOM_HEIGHT * 0.4);
+    } else if (inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.DOWN)) {
+      this.select = 0;
+      this.selectText.setPosition(GameConstants.Screen.ROOM_WIDTH * 0.35, GameConstants.Screen.ROOM_HEIGHT * 0.47);
     }
   }
 }

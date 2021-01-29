@@ -11,6 +11,9 @@ import EntityManager from "../../entities/manager/EntityManager";
 import TodoManager from "../../entities/manager/todo/TodoManager";
 import Command from "../../pattern/command/Command";
 import TutorialManager from "./TutorialManager";
+import {GameConstants} from "../../GameConstants";
+import MessageGraph from "../../gui/dialog/message/MessageGraph";
+import MessageNode from "../../gui/dialog/message/MessageNode";
 
 /**
  * Holds information related to the current level.
@@ -21,7 +24,23 @@ export default class LevelManager {
   level:number;
   tutorial:boolean; // is current level the tutorial
   complete:boolean; // level complete
+  gameover:boolean;
   next:boolean; // denotes changing levels
+
+  currentLevelModal:Phaser.GameObjects.Image;
+  currentLevelText:Phaser.GameObjects.BitmapText;
+
+  startLevelTime:number; // time until the game can be played
+  startLevelTimeMax:number;
+  startLevelTimeSpd:number;
+
+  endLevelTime:number;
+  endLevelTimeMax:number;
+  endLevelTimeSpd:number;
+
+  play:boolean;
+
+  textbox:Phaser.GameObjects.Image;
 
   todoManager:TodoManager;
 
@@ -33,10 +52,30 @@ export default class LevelManager {
     this.level = 0;
     this.tutorial = false;
     this.complete = false;
+    this.gameover = false;
     this.next = false;
 
+    this.startLevelTimeMax = 20;
+    this.startLevelTime = this.startLevelTimeMax;
+    this.startLevelTimeSpd = 10;
+
+    this.endLevelTimeMax = 20;
+    this.endLevelTime = this.endLevelTimeMax;
+    this.endLevelTimeSpd = 10;
+
+    this.play = false;
+
+    this.currentLevelModal = scene.add.image(GameConstants.Screen.ROOM_WIDTH * 0.5, GameConstants.Screen.ROOM_HEIGHT * 0.4, 'todo-item');
+    this.currentLevelModal.setDepth(GameConstants.Depth.MESSAGE_BOX);
+
+    this.currentLevelText = scene.add.bitmapText(GameConstants.Screen.ROOM_WIDTH * 0.5, GameConstants.Screen.ROOM_HEIGHT * 0.4, GameConstants.Font.BLACK.FONT, 'Level ' + this.level, GameConstants.Font.BLACK.SIZE);
+    this.currentLevelText.setOrigin(0.5);
+    this.currentLevelText.setDepth(GameConstants.Depth.MESSAGE_BOX_TEXT);
+
+    this.textbox = scene.add.image(GameConstants.Screen.ROOM_WIDTH * 0.5, GameConstants.Screen.ROOM_HEIGHT - 32, 'textbox');
+
     this.todoManager = new TodoManager(scene);
-    this.tutorialManager = new TutorialManager(scene);
+    this.tutorialManager = new TutorialManager(this.todoManager);
   }
 
   createLevel() {
@@ -44,9 +83,7 @@ export default class LevelManager {
     this.tutorial = false;
     this.complete = false;
     this.next = false;
-
-    const data = this.scene.cache.json.get(LevelProperties.getLevelData(this.level));
-    this.createTodoList(data);
+    this.play = false;
 
     const gameController = GameController.instance(this.scene);
 
@@ -54,8 +91,45 @@ export default class LevelManager {
     const dialogManager = gameController.getDialogManager(this.scene);
     dialogManager.clear();
 
-    if (LevelProperties.isTutorial(this.level)) {
+    dialogManager.setPosition(80, GameConstants.Screen.ROOM_HEIGHT - 51);
+    dialogManager.pause();
+
+    const data = this.scene.cache.json.get(LevelProperties.getLevelData(this.level));
+
+    /**
+     * Game Over screen
+     */
+    if (LevelProperties.isGameOver(this.level)) {
+      this.gameover = true;
+
+      // todo do something here
+      // play music?
+      this.currentLevelModal.setVisible(true);
+      this.currentLevelText.setText('Game Over').setVisible(true);
+
+      // todo add dialog message
+
+      const mg = new MessageGraph();
+      mg.addNode(new MessageNode("A").setMessage("Thank you for playing!"));
+      dialogManager.addMessage(mg);
+      dialogManager.disable(); // do not allow user to press buttons
+      dialogManager.unpause();
+
+    } else {
+      this.startLevelTime = this.startLevelTimeMax;
+      this.currentLevelModal.setVisible(true);
+      this.currentLevelText.setText(this.level === 0 ? 'Tutorial' : 'Level ' + this.level);
+      this.currentLevelText.setVisible(true);
+
       gameController.getCommandManager(this.scene).addStatic(CommandType.Entity.PAUSE); // pause all entities
+    }
+
+    this.createTodoList(data);
+
+    /**
+     * Tutorial
+     */
+    if (LevelProperties.isTutorial(this.level)) {
       this.tutorial = true;
       this.tutorialManager.setup(data, this.scene);
     }
@@ -64,7 +138,7 @@ export default class LevelManager {
   }
 
   createTodoList(data:any) {
-    this.todoManager.clear();
+    this.todoManager.reset();
     if (data.todo) {
       for (let i = 0; i < data.todo.length; i++) {
         const todo = data.todo[i];
@@ -129,13 +203,52 @@ export default class LevelManager {
   update(time:number, delta:number) {
     const gameController = GameController.instance(this.scene);
     const inputManager = gameController.getInputManager(this.scene);
-    if (inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.ENTER)) {
-      gameController.emitEvent(SceneConstants.Events.LEVEL_PAUSE);
+    const commandManager = gameController.getCommandManager(this.scene);
+    const dialogManager = gameController.getDialogManager(this.scene);
+
+    if (this.play && !this.complete) {
+      if (inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.ENTER)) {
+        gameController.emitEvent(SceneConstants.Events.LEVEL_PAUSE);
+      }
+      // item manager
+      this.todoManager.update(time, delta);
+      // tutorial manager
+      if (this.tutorial) {
+        this.tutorialManager.update(time, delta, this.scene);
+      }
+    } else if (this.complete) {
+
+      // need to pause for a second then fade to next level
+      if (this.endLevelTime > 0) {
+        this.endLevelTime -= this.endLevelTimeSpd * delta;
+
+        // todo need to fade out the camera
+
+        if (this.endLevelTime <= 0 ) {
+          commandManager.addStatic(CommandType.Level.NEXT_LEVEL);
+        }
+      }
+
+    } else if (this.startLevelTime > 0) {
+      this.startLevelTime -= this.startLevelTimeSpd * delta;
+      if (this.startLevelTime <= 0) {
+        this.play = true;
+
+        // todo need to fade in the camera
+
+        // hide the level modal
+        this.currentLevelModal.setVisible(false);
+        this.currentLevelText.setVisible(false);
+
+        // upause dialog manager
+        dialogManager.unpause();
+
+        // unpause entities
+        if (!this.tutorial) {
+          commandManager.addStatic(CommandType.Entity.UNPAUSE);
+        }
+      }
     }
-    // item manager
-    this.todoManager.update(time, delta);
-    // tutorial manager
-    this.tutorialManager.update(time, delta, this.scene);
   }
 
   postUpdate() {
@@ -159,12 +272,19 @@ export default class LevelManager {
   }
 
   command(command:Command) {
-    if ((command.type === CommandType.Level.NEXT_LEVEL || command.type === CommandType.Level.RESTART) && !this.next) {
-      if (command.type === CommandType.Level.NEXT_LEVEL) {
+    const commandManager = GameController.instance(this.scene).getCommandManager(this.scene);
+
+    if (this.tutorial) {
+      this.tutorialManager.command(command, this.scene);
+    }
+    if ((command.type === CommandType.Level.NEXT_LEVEL
+      || command.type === CommandType.Level.RESTART || command.type === CommandType.Level.SKIP_SCENE) && !this.next) {
+      if (command.type === CommandType.Level.NEXT_LEVEL || (command.type === CommandType.Level.SKIP_SCENE && this.tutorial)) {
         this.level++;
       }
       this.next = true;
       this.tutorial = false;
+      this.play = false;
 
       GameController.instance(this.scene).emitEvent(SceneConstants.Events.START_LEVEL);
     } else if (command.type === CommandType.Level.CHECK_COMBINATION && !this.complete && this.getTodoIndex() === command.data.index) {
@@ -175,23 +295,28 @@ export default class LevelManager {
       if (colorMix === currentMix || colorMix.split("").reverse().join("") === currentMix) {
         if (this.todoManager.hasNext()) {
           this.todoManager.next();
-          console.log(this.todoManager.getMix());
         } else {
-          console.log("level completed");
-          this.complete = true;
           this.todoManager.done = true;
+
+          if (!this.tutorial) {
+            this.complete = true;
+
+            this.currentLevelModal.setVisible(true);
+            this.currentLevelText.setText("Level Complete").setVisible(true);
+
+            this.endLevelTime = this.endLevelTimeMax;
+
+            // pause entities
+            commandManager.addStatic(CommandType.Entity.PAUSE);
+          }
         }
         this.todoManager.setMoveOut();
         // todo need to play "correct" sound
-      } else {
-        console.log("Incorrect");
-        // todo need to shake the item when incorrect, however it would have to be after all commands have been checked for the update
-        // todo need to play "incorrect" sound ONLY after all other commands for the this manager has been checked
       }
     }
   }
 
   destroy() {
-    this.todoManager.clear();
+    this.todoManager.reset();
   }
 }

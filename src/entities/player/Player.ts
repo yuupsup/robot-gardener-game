@@ -29,6 +29,7 @@ export default class Player extends MoveEntity {
    */
   tutPickUp:boolean;
   tutPutDown:boolean;
+  tutPair:boolean; // pair two flowers
 
   constructor(config:any) {
     super(config);
@@ -70,6 +71,7 @@ export default class Player extends MoveEntity {
      */
     this.tutPickUp = false;
     this.tutPutDown = false;
+    this.tutPair = false;
 
     // this.debugAABB.setVisible(true);
     // this.debugAABB.fillColor = 0x99eeff;
@@ -109,6 +111,18 @@ export default class Player extends MoveEntity {
 
   preUpdateCall(time:number, delta:number) {
     super.preUpdateCall(time, delta);
+
+    /**
+     * Tutorial logic
+     */
+    if (this.tutPutDown) {
+      // do not allow movement as in the tutorial a flower is created
+      // and we don't want the player to put the flower in the same position
+      // as the generated flower
+      this.getVelocity().x = 0;
+      this.getVelocity().y = 0;
+      return;
+    }
 
     if (this.paused) {
       return;
@@ -156,7 +170,7 @@ export default class Player extends MoveEntity {
       this.colorWheel.hide();
     }
     // pickup/put down action
-    if (inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.C)) {
+    if (!this.paused && inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.C)) {
       if (flower && flower.pickup && !this.hold) { // pick up
         flower.holder = this;
         this.hold = flower;
@@ -166,10 +180,11 @@ export default class Player extends MoveEntity {
          */
         if (this.tutPickUp) {
           commandManager.addStatic(CommandType.Level.TUTORIAL_PICK_UP);
+          commandManager.addStatic(CommandType.Entity.PAUSE);
           this.tutPickUp = false;
         }
       } else if (!flower && this.hold) { // put down
-        this.hold.placed(this.x, this.y);
+        const success = this.hold.placed(this.x, this.y);
 
         this.hold.holder = null;
         this.hold = null;
@@ -177,9 +192,15 @@ export default class Player extends MoveEntity {
         /**
          * For tutorial purposes
          */
-        if (this.tutPickUp) {
+        if (this.tutPutDown) {
           commandManager.addStatic(CommandType.Level.TUTORIAL_PUT_DOWN);
+          commandManager.addStatic(CommandType.Entity.PAUSE);
           this.tutPutDown = false;
+        }
+        if (this.tutPair && success) {
+          commandManager.addStatic(CommandType.Level.TUTORIAL_PAIR_FLOWERS);
+          commandManager.addStatic(CommandType.Entity.PAUSE);
+          this.tutPair = false;
         }
       }
     }
@@ -203,11 +224,21 @@ export default class Player extends MoveEntity {
 
   command(command: Command) {
     super.command(command);
-
+    /**
+     * Tutorial
+     */
     if (command.type === CommandType.Player.TUTORIAL_PICK_UP) {
       this.tutPickUp = true;
     } else if (command.type === CommandType.Player.TUTORIAL_PUT_DOWN) {
       this.tutPutDown = true;
+    } else if (command.type === CommandType.Player.TUTORIAL_PAIR_FLOWERS) {
+      this.tutPair = true;
     }
+  }
+
+  destroy() {
+    super.destroy();
+    this.tileSelector.destroy();
+    this.colorWheel.destroy();
   }
 }

@@ -57,22 +57,24 @@ export default class Flower extends GridEntity {
     // update grid position
     if (this.holder) {
       this.x = this.holder.x;
-      this.y = this.holder.y - (this.offset.y + 2);
+      this.y = this.holder.y - (this.offset.y + 6);
     }
     const tpos = TileManager.getTilePosition(this.x, this.y);
     this.getGridPosition().set(tpos.x, tpos.y);
   }
 
-  placed(x:number, y:number) {
+  placed(x:number, y:number) : boolean {
     // snap to the grid
     const tpos = TileManager.getTileHalfPosition(x, y);
     this.setPosition(tpos.x, tpos.y);
 
+    let success = false;
     // create the adjacent instance
-    this.createAdjacent(-1,  0); // left
-    this.createAdjacent( 0, -1); // top
-    this.createAdjacent( 1,  0); // right
-    this.createAdjacent( 0,  1); // bottom
+    success = (!success) ? this.createAdjacent(-1,  0) : true; // left
+    success = (!success) ? this.createAdjacent( 0, -1) : true; // top
+    success = (!success) ? this.createAdjacent( 1,  0) : true; // right
+    success = (!success) ? this.createAdjacent( 0,  1) : true; // bottom
+    return success;
   }
 
   isRBY() : boolean {
@@ -114,7 +116,7 @@ export default class Flower extends GridEntity {
    * @param xdir
    * @param ydir
    */
-  createAdjacent(xdir:number, ydir:number) {
+  createAdjacent(xdir:number, ydir:number) : boolean {
     const levelManager = GameController.instance(this.scene).getLevelManager(this.scene);
     const colorManager = GameController.instance(this.scene).getColorManager();
     const tileSize = GameConstants.Tile.SIZE;
@@ -171,8 +173,10 @@ export default class Flower extends GridEntity {
           colorMix: colorMix,
           index: levelManager.getTodoIndex()
         }));
+        return true;
         // todo NOTE, the grid positions for the created entity are not stored in the EntityManager until the NEXT update
       }
     }
+    return false;
   }
 }

@@ -3,27 +3,21 @@ import GameController from "../../GameController";
 import MessageGraph from "../../gui/dialog/message/MessageGraph";
 import MessageNode from "../../gui/dialog/message/MessageNode";
 import {GameConstants} from "../../GameConstants";
+import {CommandType} from "../../pattern/command/CommandType";
+import Command from "../../pattern/command/Command";
+import TodoManager from "../../entities/manager/todo/TodoManager";
+import {ColorConstants} from "../../entities/color/ColorConstants";
+import Flower from "../../entities/flower/Flower";
+import {EntityConstants} from "../../entities/EntityConstants";
 
 export default class TutorialManager {
-  scene:Phaser.Scene;
-  constructor(scene:Phaser.Scene) {
-    // const dialogManager = GameController.instance(scene).getDialogManager(scene);
-    //
-    // const mg = new MessageGraph();
-    // const nodeA = new MessageNode('A').setMessage('Hello');
-    // const nodeB = new MessageNode('B').setMessage('World').setProceedOnUserAction(false);
-    //
-    // mg.addNode(nodeA);
-    // mg.addNode(nodeB);
-    //
-    // mg.addEdgeTo(nodeA.name, nodeB.name);
-    //
-    // dialogManager.addMessage(mg);
+  todoManager:TodoManager;
+  constructor(todoManager:TodoManager) {
+    this.todoManager = todoManager;
   }
 
   setup(data:any, scene:Phaser.Scene) {
     const dialogManager = GameController.instance(scene).getDialogManager(scene);
-    dialogManager.setPosition(80, GameConstants.Screen.ROOM_HEIGHT - 51);
 
     if (data.instructions) {
       const instructions = data.instructions;
@@ -39,7 +33,74 @@ export default class TutorialManager {
             /**
              * Callbacks
              */
+            // player moves and pick up/put down flower
+            if (message.pickup) {
+              node.setOnEnd((function(scene:Phaser.Scene) {
+                return function() {
+                  const dialogManager = GameController.instance(scene).getDialogManager(scene);
+                  dialogManager.pause();
 
+                  const commandManager = GameController.instance(scene).getCommandManager(scene);
+                  commandManager.addStatic(CommandType.Entity.UNPAUSE);
+                  commandManager.addStatic(CommandType.Player.TUTORIAL_PICK_UP);
+                };
+              })(scene));
+            } else if (message.putdown) {
+              node.setOnEnd((function(scene:Phaser.Scene) {
+                return function() {
+                  const dialogManager = GameController.instance(scene).getDialogManager(scene);
+                  dialogManager.pause();
+
+                  const commandManager = GameController.instance(scene).getCommandManager(scene);
+                  commandManager.addStatic(CommandType.Entity.UNPAUSE);
+                  commandManager.addStatic(CommandType.Player.TUTORIAL_PUT_DOWN);
+                };
+              })(scene));
+            } else if (message.showtodo) {
+              node.setOnEnd((function(todoManager:TodoManager) {
+                return function() {
+                  // todo show the todo item
+                  todoManager.add(ColorConstants.Color.RED, ColorConstants.Color.BLUE);
+                  todoManager.setMoveIn();
+                  todoManager.updateLetterDisplay();
+                };
+              })(this.todoManager));
+            } else if (message.createflower) {
+              node.setOnStart((function(scene:Phaser.Scene) {
+                return function() {
+                  new Flower({
+                    scene: scene,
+                    x: 136,
+                    y: 104,
+                    width: 16,
+                    height: 16,
+                    xoffset: 8,
+                    yoffset: 8,
+                    group: EntityConstants.Group.FLOWER,
+                    color: ColorConstants.Color.BLUE,
+                    texture: 'flower'
+                  });
+                };
+              })(scene));
+              node.setOnEnd((function(scene:Phaser.Scene) {
+                return function() {
+                  const dialogManager = GameController.instance(scene).getDialogManager(scene);
+                  dialogManager.pause();
+
+                  const commandManager = GameController.instance(scene).getCommandManager(scene);
+                  commandManager.addStatic(CommandType.Entity.UNPAUSE);
+                  commandManager.addStatic(CommandType.Player.TUTORIAL_PAIR_FLOWERS);
+                };
+              })(scene));
+            } else if (message.done) {
+              node.setOnEnd((function(scene:Phaser.Scene) {
+                return function() {
+                  const commandManager = GameController.instance(scene).getCommandManager(scene);
+                  // commandManager.addStatic(CommandType.Level.TUTORIAL_COMPLETE);
+                  commandManager.addStatic(CommandType.Level.NEXT_LEVEL); // tutorial completed
+                };
+              })(scene));
+            }
             mg.addNode(node);
 
             // attach the message nodes
@@ -58,19 +119,17 @@ export default class TutorialManager {
   }
 
   update(time:number, delta:number, scene:Phaser.Scene) {
+    // const dialogManager = GameController.instance(scene).getDialogManager(scene);
+    // dialogManager.update(time, delta);
+  }
 
-    // todo need to instruct the player on how to play
-    //
-    // 1. Give instructions
-    // 2. Player follows instructions
-    // 3. Once instructions are completed, clear all grid entities (flowers)
-    // 4. If more instructions, create the entities for the instruction and proceed to step (1), otherwise, tutorial is finished, proceed to next level
-
-    // todo need to pass the instructions to this class, will be an array of objects
-    // todo need the TodoManager
-
-
+  command(command:Command, scene:Phaser.Scene) {
     const dialogManager = GameController.instance(scene).getDialogManager(scene);
-    dialogManager.update(time, delta);
+
+    if (command.type === CommandType.Level.TUTORIAL_PICK_UP
+      || command.type === CommandType.Level.TUTORIAL_PUT_DOWN
+      || command.type === CommandType.Level.TUTORIAL_PAIR_FLOWERS) {
+      dialogManager.unpause(); // proceed to the next message
+    }
   }
 }

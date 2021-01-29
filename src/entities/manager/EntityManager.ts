@@ -184,6 +184,8 @@ export default class EntityManager {
     })(this));
   }
 
+
+
   update(time: number, delta: number) {
     // add entities to the collection
     for (let i = 0; i < this.entitiesToAdd.length; i++) {
@@ -241,6 +243,11 @@ export default class EntityManager {
     const levelManager = gameController.getLevelManager(this.scene);
     if (levelManager) {
       levelManager.update(time, delta);
+    }
+
+    const dialogManager = gameController.getDialogManager(this.scene);
+    if (dialogManager) {
+      dialogManager.update(time, delta);
     }
 
     // preupdate

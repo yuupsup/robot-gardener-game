@@ -42,12 +42,12 @@ export default class TodoManager {
 
     this.todoItemImg = scene.add.image(this.position.x, this.position.y, 'todo-item');
 
-    this.colorLetter1 = scene.add.sprite(0, 0, 'color-letters').setVisible(false);
-    this.colorLetter2 = scene.add.sprite(0, 0, 'color-letters').setVisible(false);
-    this.colorLetter3 = scene.add.sprite(0, 0, 'color-letters').setVisible(false);
+    this.colorLetter1 = scene.add.sprite(-16, 0, 'color-letters').setVisible(false);
+    this.colorLetter2 = scene.add.sprite(-16, 0, 'color-letters').setVisible(false);
+    this.colorLetter3 = scene.add.sprite(-16, 0, 'color-letters').setVisible(false);
 
-    this.crossImg1 = scene.add.image(0, 0, 'cross').setVisible(false);
-    this.crossImg2 = scene.add.image(0, 0, 'cross').setVisible(false);
+    this.crossImg1 = scene.add.image(-16, 0, 'cross').setVisible(false);
+    this.crossImg2 = scene.add.image(-16, 0, 'cross').setVisible(false);
 
     this.moveTime = 0;
     this.moveTimeMax = 1;
@@ -57,11 +57,10 @@ export default class TodoManager {
 
     this.States = {};
     this.States.IDLE = 0;
-    this.States.STAND_BY = 1;
-    this.States.MOVE_IN = 2;
-    this.States.MOVE_OUT = 3;
+    this.States.MOVE_IN = 1;
+    this.States.MOVE_OUT = 2;
 
-    this.currentState = this.States.STAND_BY;
+    this.currentState = this.States.IDLE;
   }
 
   isDone() : boolean {
@@ -150,9 +149,7 @@ export default class TodoManager {
   }
 
   update(time:number, delta:number) {
-    if (this.currentState === this.States.STAND_BY) {
-
-    } else if (this.currentState === this.States.MOVE_IN) {
+    if (this.currentState === this.States.MOVE_IN) {
       this.moveIn(delta);
     } else if (this.currentState === this.States.MOVE_OUT) {
       this.moveOut(delta);
@@ -191,7 +188,23 @@ export default class TodoManager {
     }
   }
 
-  clear() {
+  reset() {
     this.items = [];
+    this.index = 0;
+    this.displayIndex = 0;
+    this.done = false;
+
+    this.moveTime = 0;
+
+    this.todoItemImg.setPosition(this.position.x, this.position.y);
+
+    this.colorLetter1.setPosition(-16, 0).setVisible(false);
+    this.colorLetter2.setPosition(-16, 0).setVisible(false);
+    this.colorLetter3.setPosition(-16, 0).setVisible(false);
+
+    this.crossImg1.setPosition(-16, 0).setVisible(false);
+    this.crossImg2.setPosition(-16, 0).setVisible(false);
+
+    this.currentState = this.States.IDLE;
   }
 }

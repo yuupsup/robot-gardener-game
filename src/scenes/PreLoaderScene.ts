@@ -18,6 +18,8 @@ export default class PreLoaderScene extends Phaser.Scene {
      */
     this.load.json("tutorial", "levels/tutorial.json");
     this.load.json("level1", "levels/level1.json");
+    this.load.json("level2", "levels/level2.json");
+    this.load.json("gameover", "levels/gameover.json");
 
     /**
      * Images

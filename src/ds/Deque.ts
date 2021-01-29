@@ -36,4 +36,8 @@ export default class Deque {
   size() : number {
     return this.elements.length;
   }
+
+  clear() {
+    this.elements = [];
+  }
 }

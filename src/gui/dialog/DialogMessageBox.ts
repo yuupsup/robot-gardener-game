@@ -160,10 +160,8 @@ export default class DialogMessageBox extends DialogBox {
 
           this.messageShown = true;
         } else {
-          const userAction = this.userInputEnabled && (node.proceedOnUserAction || !this.messageDone) && inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.C);
-          if (this.proceed || userAction || node.isAuto()) {
-            this.proceed = false;
-
+          const userAction = this.userInputEnabled && inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.C);
+          if (userAction || node.isAuto()) {
             inputManager.ignoreKey(Phaser.Input.Keyboard.KeyCodes.C); // ignores key for the next update
 
             if (this.messageDone) {
@@ -462,5 +460,16 @@ export default class DialogMessageBox extends DialogBox {
     this.lineCharIndex = 0;
 
     this.typeCounter = 0;
+  }
+
+  clear() {
+    this.messageGraphQueue.clear();
+    this.resetMsgCounter();
+
+    this.messageText.setText('');
+
+    this.hasMore = false;
+    this.messageDone = false;
+    this.messageShown = false;
   }
 }

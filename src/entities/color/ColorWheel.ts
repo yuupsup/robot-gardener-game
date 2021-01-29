@@ -35,4 +35,8 @@ export default class ColorWheel {
   hide() {
     this.sprite.setVisible(false);
   }
+
+  destroy() {
+    this.sprite.destroy();
+  }
 }

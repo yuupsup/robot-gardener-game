@@ -52,6 +52,10 @@ export default class DialogManager {
     this.messageBox.typeSpd = speed;
   }
 
+  proceed() {
+    this.messageBox.proceed = true;
+  }
+
   /**
    * Dialog box is visible.
    */
@@ -101,7 +105,8 @@ export default class DialogManager {
   }
 
   clear() {
-
+    this.messageBox.clear(); // todo need better clean up here
+    this.messageBox = new DialogMessageBox(this.scene);
   }
 
   destroy() {

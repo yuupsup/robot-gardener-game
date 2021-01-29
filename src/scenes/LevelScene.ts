@@ -29,10 +29,14 @@ export default class LevelScene extends Phaser.Scene {
     commandManager.setStatic(CommandType.Entity.UNPAUSE);
     commandManager.setStatic(CommandType.Level.NEXT_LEVEL);
     commandManager.setStatic(CommandType.Level.RESTART);
+    commandManager.setStatic(CommandType.Level.SKIP_SCENE);
     commandManager.setStatic(CommandType.Level.TUTORIAL_PICK_UP);
     commandManager.setStatic(CommandType.Level.TUTORIAL_PUT_DOWN);
+    commandManager.setStatic(CommandType.Level.TUTORIAL_PAIR_FLOWERS);
+    commandManager.setStatic(CommandType.Level.TUTORIAL_COMPLETE);
     commandManager.setStatic(CommandType.Player.TUTORIAL_PICK_UP);
     commandManager.setStatic(CommandType.Player.TUTORIAL_PUT_DOWN);
+    commandManager.setStatic(CommandType.Player.TUTORIAL_PAIR_FLOWERS);
 
     /**
      * Add controls
@@ -72,8 +76,6 @@ export default class LevelScene extends Phaser.Scene {
      */
     this.add.grid(0, 0, GameConstants.Screen.ROOM_WIDTH, GameConstants.Screen.ROOM_HEIGHT, GameConstants.Tile.SIZE, GameConstants.Tile.SIZE, 0xe9efec).setAltFillStyle(0xe9efec).setOutlineStyle().setOrigin(0, 0).setDepth(-100);
 
-    const textbox = this.add.image(GameConstants.Screen.ROOM_WIDTH * 0.5, GameConstants.Screen.ROOM_HEIGHT - 32, 'textbox');
-
     /**
      * Events
      */
@@ -90,13 +92,20 @@ export default class LevelScene extends Phaser.Scene {
 
     gameController.onEvent(SceneConstants.Events.LEVEL_PAUSE, (function (self:Phaser.Scene) {
       return function () {
+        const gameController = GameController.instance(self);
+        const levelManager = gameController.getLevelManager(self);
         self.scene.pause(SceneConstants.Scenes.LEVEL);
-        GameController.instance(self).emitEvent(SceneConstants.Events.PAUSE, {pausedScene: self.scene.key});
+        gameController.emitEvent(SceneConstants.Events.PAUSE, {pausedScene: self.scene.key, tutorial: levelManager.tutorial});
       };
     })(this), null);
 
     gameController.onEvent(SceneConstants.Events.LEVEL_RESUME, (function (self:Phaser.Scene) {
-      return function () {
+      return function (data) {
+        if (!data.continue) {
+          const gameController = GameController.instance(self);
+          const levelManager = gameController.getLevelManager(self);
+          gameController.getCommandManager(self).addStatic(levelManager.tutorial ? CommandType.Level.SKIP_SCENE : CommandType.Level.RESTART);
+        }
         self.scene.resume(SceneConstants.Scenes.LEVEL);
       };
     })(this), null);
