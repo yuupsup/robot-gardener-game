@@ -33,8 +33,8 @@ export default class DialogManager {
     }
   }
 
-  update() {
-    this.messageBox.update();
+  update(time:number, delta:number) {
+    this.messageBox.update(time, delta);
     this.messageBox.postUpdate();
   }
 
@@ -98,6 +98,10 @@ export default class DialogManager {
    */
   addMessage(messageGraph, toFront= false) {
     this.messageBox.addMessage(messageGraph, toFront);
+  }
+
+  clear() {
+
   }
 
   destroy() {

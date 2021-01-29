@@ -7,12 +7,15 @@ export const CommandType = {
     UNPAUSE: 1
   },
   Player: {
-
+    TUTORIAL_PICK_UP: 0,
+    TUTORIAL_PUT_DOWN: 1
   },
   Level: {
     NEXT_LEVEL: 50,
     RESTART: 51,
-    CHECK_COMBINATION: 52
+    CHECK_COMBINATION: 52,
+    TUTORIAL_PICK_UP: 60, // player picked up flower
+    TUTORIAL_PUT_DOWN: 61, // player put down flower
   },
   Dialog: {
     PAUSE: 100,

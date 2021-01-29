@@ -11,6 +11,8 @@ export default class MessageNode extends GraphNode {
   auto:boolean; // when the message is done, this node will automatically cause the dialog message box to continue
   clearMessageOnNextUpdate:boolean;
 
+  proceedOnUserAction:boolean; // proceeds to the next message from user actions only
+
   constructor(name) {
     super(name);
     this.message = "";
@@ -22,14 +24,30 @@ export default class MessageNode extends GraphNode {
     this.onEnd = null; // callbacks for the start of the message and the end of the message
     this.auto = false; // when the message is done, this node will automatically cause the dialog message box to continue
     this.clearMessageOnNextUpdate = false; // informs the message box to clear the message on the next update after the message has been displayed
+
+    this.proceedOnUserAction = true;
   }
 
   getMessage() : string {
     return this.message;
   }
 
-  setMessage(msg:string) {
+  setMessage(msg:string) : MessageNode {
     this.message = msg;
+    return this;
+  }
+
+  setProceedOnUserAction(value:boolean) : MessageNode {
+    if (value !== undefined) {
+      this.proceedOnUserAction = value;
+    }
+    return this;
+  }
+
+  setAuto(value:boolean) : MessageNode {
+    if (value !== undefined) {
+      this.auto = value;
+    }
     return this;
   }
 

@@ -17,6 +17,10 @@ export default class MessageGraph extends DirectedGraph {
     this.currentNode = null;
   }
 
+  isEmpty() : boolean {
+    return this.head === null;
+  }
+
   getOwner() : any {
     return this.owner;
   }

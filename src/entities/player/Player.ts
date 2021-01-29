@@ -6,6 +6,8 @@ import TileManager from "../../tile/TileManager";
 import EntityManager from "../manager/EntityManager";
 import ColorWheel from "../color/ColorWheel";
 import Flower from "../flower/Flower";
+import Command from "../../pattern/command/Command";
+import {CommandType} from "../../pattern/command/CommandType";
 
 /**
  * todo
@@ -21,15 +23,22 @@ export default class Player extends MoveEntity {
 
   hold:Flower|null; // entity reference to the flower instance
 
+  /**
+   * Properties for tutorial
+   * todo should we create a separate Player entity for this?
+   */
+  tutPickUp:boolean;
+  tutPutDown:boolean;
+
   constructor(config:any) {
     super(config);
     const scene:Scene = config.scene;
 
     this.entityType = EntityConstants.Type.PLAYER;
-    this.setDisplayOrigin(8, 8);
+    this.setDisplayOrigin(8, 12);
 
-    // this.getVelocityMax().set(35, 35);
-    this.getVelocityMax().set(45, 45);
+    // this.getVelocityMax().set(45, 45);
+    this.getVelocityMax().set(40, 40);
     this.setAcc(1000);
     this.setDec(1000);
 
@@ -56,6 +65,12 @@ export default class Player extends MoveEntity {
 
     this.hold = null;
 
+    /**
+     * Properties for tutorial
+     */
+    this.tutPickUp = false;
+    this.tutPutDown = false;
+
     // this.debugAABB.setVisible(true);
     // this.debugAABB.fillColor = 0x99eeff;
   }
@@ -66,18 +81,30 @@ export default class Player extends MoveEntity {
 
   createAnimations(scene:Phaser.Scene) {
     scene.anims.create({
-      key: 'player-idle',
+      key: 'idle',
       repeat: -1,
       frames: this.anims.generateFrameNumbers('player', {start: 0, end: 1}),
       frameRate: 3
     });
     scene.anims.create({
-      key: 'player-walk',
+      key: 'idle-hold',
+      repeat: -1,
+      frames: this.anims.generateFrameNumbers('player', {start: 6, end: 7}),
+      frameRate: 3
+    });
+    scene.anims.create({
+      key: 'walk',
       repeat: -1,
       frames: this.anims.generateFrameNumbers('player', {start: 2, end: 5}),
       frameRate: 4
     });
-    this.anims.play('player-idle');
+    scene.anims.create({
+      key: 'walk-hold',
+      repeat: -1,
+      frames: this.anims.generateFrameNumbers('player', {start: 8, end: 11}),
+      frameRate: 4
+    });
+    this.anims.play('idle');
   }
 
   preUpdateCall(time:number, delta:number) {
@@ -116,6 +143,7 @@ export default class Player extends MoveEntity {
     super.update(time, delta);
 
     const inputManager = GameController.instance(this.scene).getInputManager(this.scene);
+    const commandManager = GameController.instance(this.scene).getCommandManager(this.scene);
 
     // is flower in current tile position?
     const flower:any = EntityManager.instance(this.scene).getEntityAtGridPosition(this.x, this.y, EntityConstants.Type.FLOWER, this.hold);
@@ -132,11 +160,27 @@ export default class Player extends MoveEntity {
       if (flower && flower.pickup && !this.hold) { // pick up
         flower.holder = this;
         this.hold = flower;
+
+        /**
+         * For tutorial purposes
+         */
+        if (this.tutPickUp) {
+          commandManager.addStatic(CommandType.Level.TUTORIAL_PICK_UP);
+          this.tutPickUp = false;
+        }
       } else if (!flower && this.hold) { // put down
         this.hold.placed(this.x, this.y);
 
         this.hold.holder = null;
         this.hold = null;
+
+        /**
+         * For tutorial purposes
+         */
+        if (this.tutPickUp) {
+          commandManager.addStatic(CommandType.Level.TUTORIAL_PUT_DOWN);
+          this.tutPutDown = false;
+        }
       }
     }
   }
@@ -146,21 +190,24 @@ export default class Player extends MoveEntity {
     const vel = this.getVelocity();
 
     // animations
-    if (vel.x !== 0 || vel.y !== 0) {
-      this.anims.play('player-walk', true);
+    if (vel.x === 0 && vel.y === 0) {
+      this.anims.play(this.hold ? 'idle-hold' : 'idle', true);
     } else {
-      this.anims.play('player-idle', true);
+      this.anims.play(this.hold ? 'walk-hold' : 'walk', true);
     }
+    // update selector position
+    const targetPos = TileManager.getTileHalfPosition(this.x, this.y);
+    this.tileSelector.x += (targetPos.x - this.tileSelector.x) / 8;
+    this.tileSelector.y += (targetPos.y - this.tileSelector.y) / 8;
+  }
 
-    const targetPos = (vel.x === 0 && vel.y === 0) ? TileManager.getTileHalfPosition(this.x, this.y) : {x: this.x, y: this.y};
+  command(command: Command) {
+    super.command(command);
 
-    // this.tileSelector.x += (targetPos.x - this.tileSelector.x) / 10;
-    // this.tileSelector.y += (targetPos.y - this.tileSelector.y) / 10;
-
-    this.tileSelector.x += (targetPos.x - this.tileSelector.x) / 6;
-    this.tileSelector.y += (targetPos.y - this.tileSelector.y) / 6;
-
-    // this.gridSelector.x = targetPos.x; //+= (targetPos.x - this.gridSelector.x) / 10;
-    // this.gridSelector.y = targetPos.y; //+= (targetPos.y - this.gridSelector.y) / 10;
+    if (command.type === CommandType.Player.TUTORIAL_PICK_UP) {
+      this.tutPickUp = true;
+    } else if (command.type === CommandType.Player.TUTORIAL_PUT_DOWN) {
+      this.tutPutDown = true;
+    }
   }
 }

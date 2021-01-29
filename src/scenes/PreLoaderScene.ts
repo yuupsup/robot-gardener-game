@@ -16,12 +16,14 @@ export default class PreLoaderScene extends Phaser.Scene {
     /**
      * Levels
      */
+    this.load.json("tutorial", "levels/tutorial.json");
     this.load.json("level1", "levels/level1.json");
 
     /**
      * Images
      */
-    this.load.image("textbox", "assets/images/textbox.png");
+    // this.load.image("textbox", "assets/images/textbox.png");
+    this.load.image("textbox", "assets/images/textbox-2.png");
     this.load.image("screen-overlay", "assets/images/screen-overlay.png");
     this.load.image("todo-item", "assets/images/todo-item.png");
     this.load.image("cross", "assets/images/cross.png");
@@ -46,6 +48,7 @@ export default class PreLoaderScene extends Phaser.Scene {
      * Font
      */
     this.load.bitmapFont('pixilator', "assets/fonts/pixilator.png", "assets/fonts/pixilator.xml");
+    this.load.bitmapFont('pixilator-black', "assets/fonts/pixilator-black.png", "assets/fonts/pixilator-black.xml");
   }
 
   create() {

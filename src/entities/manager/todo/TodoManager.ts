@@ -42,12 +42,12 @@ export default class TodoManager {
 
     this.todoItemImg = scene.add.image(this.position.x, this.position.y, 'todo-item');
 
-    this.colorLetter1 = scene.add.sprite(0, 0, 'color-letters');
-    this.colorLetter2 = scene.add.sprite(0, 0, 'color-letters');
-    this.colorLetter3 = scene.add.sprite(0, 0, 'color-letters');
+    this.colorLetter1 = scene.add.sprite(0, 0, 'color-letters').setVisible(false);
+    this.colorLetter2 = scene.add.sprite(0, 0, 'color-letters').setVisible(false);
+    this.colorLetter3 = scene.add.sprite(0, 0, 'color-letters').setVisible(false);
 
-    this.crossImg1 = scene.add.image(0, 0, 'cross');
-    this.crossImg2 = scene.add.image(0, 0, 'cross');
+    this.crossImg1 = scene.add.image(0, 0, 'cross').setVisible(false);
+    this.crossImg2 = scene.add.image(0, 0, 'cross').setVisible(false);
 
     this.moveTime = 0;
     this.moveTimeMax = 1;
@@ -107,17 +107,19 @@ export default class TodoManager {
    */
   updateLetterPosition() {
     const todo = this.get(this.displayIndex);
-    if (todo.size() === 2) {
-      this.colorLetter1.setPosition(this.position.x - 10, this.todoItemImg.y);
-      this.crossImg1.setPosition(this.position.x, this.todoItemImg.y);
-      this.colorLetter2.setPosition(this.position.x + 10, this.todoItemImg.y);
-    } else if (todo.size() === 3) {
-      this.colorLetter1.setPosition(this.position.x - 20, this.todoItemImg.y);
-      this.crossImg1.setPosition(this.position.x - 10, this.todoItemImg.y);
-      this.colorLetter2.setPosition(this.position.x, this.todoItemImg.y);
-      // last
-      this.crossImg2.setPosition(this.position.x + 10, this.todoItemImg.y);
-      this.colorLetter3.setPosition(this.position.x + 20, this.todoItemImg.y);
+    if (todo) {
+      if (todo.size() === 2) {
+        this.colorLetter1.setPosition(this.position.x - 10, this.todoItemImg.y);
+        this.crossImg1.setPosition(this.position.x, this.todoItemImg.y);
+        this.colorLetter2.setPosition(this.position.x + 10, this.todoItemImg.y);
+      } else if (todo.size() === 3) {
+        this.colorLetter1.setPosition(this.position.x - 20, this.todoItemImg.y);
+        this.crossImg1.setPosition(this.position.x - 10, this.todoItemImg.y);
+        this.colorLetter2.setPosition(this.position.x, this.todoItemImg.y);
+        // last
+        this.crossImg2.setPosition(this.position.x + 10, this.todoItemImg.y);
+        this.colorLetter3.setPosition(this.position.x + 20, this.todoItemImg.y);
+      }
     }
   }
 

@@ -47,7 +47,7 @@ export default class PauseScene extends Phaser.Scene {
     this.screenOverlay = this.add.image(0, 0, 'screen-overlay');
     this.screenOverlay.setOrigin(0, 0);
     this.screenOverlay.setDepth(-100);
-    this.screenOverlay.alpha = 0.6;
+    this.screenOverlay.alpha = 0.85;
 
     this.pausedText = this.add.bitmapText(GameConstants.Screen.ROOM_WIDTH * 0.5, GameConstants.Screen.ROOM_HEIGHT * 0.3, GameConstants.Font.FONT, "Paused", GameConstants.Font.SIZE);
     this.pausedText.setOrigin(0.5);

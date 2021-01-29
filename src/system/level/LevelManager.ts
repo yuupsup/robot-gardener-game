@@ -10,6 +10,7 @@ import Flower from "../../entities/flower/Flower";
 import EntityManager from "../../entities/manager/EntityManager";
 import TodoManager from "../../entities/manager/todo/TodoManager";
 import Command from "../../pattern/command/Command";
+import TutorialManager from "./TutorialManager";
 
 /**
  * Holds information related to the current level.
@@ -18,28 +19,46 @@ export default class LevelManager {
   scene:Phaser.Scene;
 
   level:number;
+  tutorial:boolean; // is current level the tutorial
   complete:boolean; // level complete
   next:boolean; // denotes changing levels
 
   todoManager:TodoManager;
 
+  tutorialManager:TutorialManager;
+
   constructor(scene:Phaser.Scene) {
     this.scene = scene;
 
     this.level = 0;
+    this.tutorial = false;
+    this.complete = false;
     this.next = false;
 
     this.todoManager = new TodoManager(scene);
+    this.tutorialManager = new TutorialManager(scene);
   }
 
   createLevel() {
     this.level = Phaser.Math.Clamp(this.level, 0, LevelProperties.levels.length - 1);
+    this.tutorial = false;
     this.complete = false;
     this.next = false;
 
-    const data = this.scene.cache.json.get(LevelProperties.getEntitiesForLevel(this.level));
-
+    const data = this.scene.cache.json.get(LevelProperties.getLevelData(this.level));
     this.createTodoList(data);
+
+    const gameController = GameController.instance(this.scene);
+
+    // todo need to clear the dialog manager here?
+    const dialogManager = gameController.getDialogManager(this.scene);
+    dialogManager.clear();
+
+    if (LevelProperties.isTutorial(this.level)) {
+      gameController.getCommandManager(this.scene).addStatic(CommandType.Entity.PAUSE); // pause all entities
+      this.tutorial = true;
+      this.tutorialManager.setup(data, this.scene);
+    }
     this.createTilemap();
     this.createEntities(data);
   }
@@ -115,6 +134,8 @@ export default class LevelManager {
     }
     // item manager
     this.todoManager.update(time, delta);
+    // tutorial manager
+    this.tutorialManager.update(time, delta, this.scene);
   }
 
   postUpdate() {
@@ -143,6 +164,8 @@ export default class LevelManager {
         this.level++;
       }
       this.next = true;
+      this.tutorial = false;
+
       GameController.instance(this.scene).emitEvent(SceneConstants.Events.START_LEVEL);
     } else if (command.type === CommandType.Level.CHECK_COMBINATION && !this.complete && this.getTodoIndex() === command.data.index) {
       // level cannot be completed & the color mix must be for the current item index

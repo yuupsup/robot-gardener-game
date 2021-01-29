@@ -57,7 +57,7 @@ export default class Flower extends GridEntity {
     // update grid position
     if (this.holder) {
       this.x = this.holder.x;
-      this.y = this.holder.y - this.offset.y;
+      this.y = this.holder.y - (this.offset.y + 2);
     }
     const tpos = TileManager.getTilePosition(this.x, this.y);
     this.getGridPosition().set(tpos.x, tpos.y);

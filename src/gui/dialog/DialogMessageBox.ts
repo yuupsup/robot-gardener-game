@@ -25,7 +25,6 @@ export default class DialogMessageBox extends DialogBox {
   lineCharIndex:number; // the character index in the line
   hasMore:boolean; // represents that there is more parts of the message to be displayed
 
-  // this.typeSpd = 1; // the amount to increment the type counter every frame
   typeSpd:number; // the amount to increment the type counter every frame
   typeCounter:number;
   typeCounterMax:number; // once the counter is >= than this value, then the next letter will be displayed
@@ -40,6 +39,8 @@ export default class DialogMessageBox extends DialogBox {
 
   clearMessageOnNextUpdate:boolean;
 
+  proceed:boolean; // flag set by the system to proceed to the next message (essentially invokes a user action)
+
   messageText:Phaser.GameObjects.BitmapText;
 
   gameController:GameController;
@@ -52,26 +53,38 @@ export default class DialogMessageBox extends DialogBox {
 
     this.gameController = GameController.instance(scene);
 
-    this.bipmapFontData = new BitmapFontData(scene, GameConstants.Font.FONT);
+    const font = GameConstants.Font.BLACK.FONT;
+    const fontSize = GameConstants.Font.BLACK.SIZE;
 
-    this.props.width = GameConstants.Screen.WINDOW_WIDTH - 32;
-    this.props.height = 96;
+    this.bipmapFontData = new BitmapFontData(scene, font);
 
-    this.props.offset.x = 64;
-    this.props.offset.y = GameConstants.Screen.WINDOW_HEIGHT - 96;
+    this.props.width = 121;
+    this.props.height = 38;
 
-    this.props.padding.inner.x = 8;
-    this.props.padding.inner.y = 8;
+    // this.props.offset.x = 64;
+    // this.props.offset.y = GameConstants.Screen.WINDOW_HEIGHT - 96;
+
+    // todo needed?
+    this.props.offset.x = 0;
+    this.props.offset.y = 0;
+
+    // this.props.padding.inner.x = 8;
+    // this.props.padding.inner.y = 8;
+    this.props.padding.inner.x = 4;
+    this.props.padding.inner.y = 4;
 
     this.props.padding.outer.x = 0;
     this.props.padding.outer.y = 0;
 
     this.messageGraphQueue = new Deque();
 
-    this.charSize = 8; // size of the bitmap font character
+    this.charSize = fontSize; // size of the bitmap font character
 
-    this.linesMax = 8; // the maximum lines the dialog box supports
+    // this.linesMax = 8; // the maximum lines the dialog box supports
     this.lineWidthMax = (this.props.width - (this.props.padding.inner.x * 2)); // the maximum width the dialog box supports (in pixels because each character will be 8 pixels)
+
+    this.linesMax = 2; // the maximum lines the dialog box supports
+    // this.lineWidthMax = 8; // the maximum width the dialog box supports (in pixels because each character will be 8 pixels)
 
     this.line = ""; // the current line of the dialog box
 
@@ -83,8 +96,7 @@ export default class DialogMessageBox extends DialogBox {
     this.lineCharIndex = 0; // the character index in the line
     this.hasMore = false; // represents that there is more parts of the message to be displayed
 
-    // this.typeSpd = 1; // the amount to increment the type counter every frame
-    this.typeSpd = 0.1; // the amount to increment the type counter every frame
+    this.typeSpd = 30; // the amount to increment the type counter every frame
     this.typeCounter = 0;
     this.typeCounterMax = 2; // once the counter is >= than this value, then the next letter will be displayed
     this.rollover = false;
@@ -97,22 +109,25 @@ export default class DialogMessageBox extends DialogBox {
     this.messageDone = false; // denotes whether the message has been completely displayed
 
     this.clearMessageOnNextUpdate = false;
+    this.proceed = false;
 
     this.dialogBox.setPosition(this.props.position.x, this.props.position.y);
+    this.dialogBox.setDepth(GameConstants.Depth.MESSAGE_BOX);
 
     this.dialogBox.width = this.props.width;
     this.dialogBox.height = this.props.height;
     this.dialogBox.displayWidth = this.props.width;
     this.dialogBox.displayHeight = this.props.height;
 
-    this.messageText = this.scene.add.bitmapText(this.dialogBox.x + this.props.padding.inner.x, this.dialogBox.y + this.props.padding.inner.y, GameConstants.Font.FONT, '', this.charSize);
+    this.messageText = this.scene.add.bitmapText(this.dialogBox.x + this.props.padding.inner.x, this.dialogBox.y + this.props.padding.inner.y, font, '', this.charSize);
     this.messageText.setVisible(true);
-    this.messageText.setDepth(this.dialogBox.depth);
+    // this.messageText.setDepth(this.dialogBox.depth);
+    this.messageText.setDepth(GameConstants.Depth.MESSAGE_BOX_TEXT);
 
     this.scene.add.existing(this.messageText);
   }
 
-  update() {
+  update(time:number, delta:number) {
     if (this.dialogState === DialogState.PAUSED) {
       return;
     }
@@ -145,9 +160,11 @@ export default class DialogMessageBox extends DialogBox {
 
           this.messageShown = true;
         } else {
-          const userClicked = this.userInputEnabled && (inputManager && inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.D));
-          if (userClicked || node.isAuto()) {
-            inputManager?.ignoreKey(Phaser.Input.Keyboard.KeyCodes.D);
+          const userAction = this.userInputEnabled && (node.proceedOnUserAction || !this.messageDone) && inputManager.isPressed(Phaser.Input.Keyboard.KeyCodes.C);
+          if (this.proceed || userAction || node.isAuto()) {
+            this.proceed = false;
+
+            inputManager.ignoreKey(Phaser.Input.Keyboard.KeyCodes.C); // ignores key for the next update
 
             if (this.messageDone) {
               node.callEnd(); // invoke the callback
@@ -178,12 +195,12 @@ export default class DialogMessageBox extends DialogBox {
 
                 this.hasMore = false;
                 this.newLine = false;
-              } else if (userClicked) {
+              } else if (userAction) {
                 // complete the dialog box with the message
                 let safeGuard = 1000;
                 let i = 0;
                 while (!this.messageDone && i < safeGuard) {
-                  this.typeMsg(false);
+                  this.typeMsg(delta, false);
                   i++;
                 }
               }
@@ -202,15 +219,16 @@ export default class DialogMessageBox extends DialogBox {
 
       this.resetMsgCounter();
     } else {
-      this.typeMsg();
+      this.typeMsg(delta);
     }
   }
 
   /**
    * Type the next character in the message box.
+   * @param delta
    * @param {boolean} playSound should a sound be played for each character?
    */
-  typeMsg(playSound = true) {
+  typeMsg(delta:number, playSound = true) {
     if (this.message === null) {
       return;
     }
@@ -240,7 +258,7 @@ export default class DialogMessageBox extends DialogBox {
               word = " ";
             }
 
-            wordCharWidth += this.bipmapFontData.getCharWidth(word.charCodeAt(0));
+            wordCharWidth += this.bipmapFontData.getCharWidth(word.charCodeAt(0), this.scene);
 
             wordEndIndex = i + 1;
             found = true;
@@ -252,7 +270,7 @@ export default class DialogMessageBox extends DialogBox {
               wordStartIndex = i;
             }
 
-            wordCharWidth += this.bipmapFontData.getCharWidth(ch.charCodeAt(0));
+            wordCharWidth += this.bipmapFontData.getCharWidth(ch.charCodeAt(0), this.scene);
 
             // word += ch;
             wordEndIndex = i + 1;
@@ -374,7 +392,7 @@ export default class DialogMessageBox extends DialogBox {
             }
           } else {
             // increment the counters
-            this.typeCounter += this.typeSpd;
+            this.typeCounter += this.typeSpd * delta;
             if (this.typeCounter >= this.typeCounterMax) {
               this.lineCharIndex += 1;
               // audio

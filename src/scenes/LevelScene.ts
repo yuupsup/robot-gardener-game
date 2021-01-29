@@ -18,6 +18,7 @@ export default class LevelScene extends Phaser.Scene {
     gameController.registerSystem(this, SceneConstants.Systems.INPUT);
     gameController.registerSystem(this, SceneConstants.Systems.CAMERA);
     gameController.registerSystem(this, SceneConstants.Systems.COMMAND);
+    gameController.registerSystem(this, SceneConstants.Systems.DIALOG);
     gameController.registerSystem(this, SceneConstants.Systems.LEVEL);
 
     /**
@@ -28,6 +29,10 @@ export default class LevelScene extends Phaser.Scene {
     commandManager.setStatic(CommandType.Entity.UNPAUSE);
     commandManager.setStatic(CommandType.Level.NEXT_LEVEL);
     commandManager.setStatic(CommandType.Level.RESTART);
+    commandManager.setStatic(CommandType.Level.TUTORIAL_PICK_UP);
+    commandManager.setStatic(CommandType.Level.TUTORIAL_PUT_DOWN);
+    commandManager.setStatic(CommandType.Player.TUTORIAL_PICK_UP);
+    commandManager.setStatic(CommandType.Player.TUTORIAL_PUT_DOWN);
 
     /**
      * Add controls
@@ -67,6 +72,7 @@ export default class LevelScene extends Phaser.Scene {
      */
     this.add.grid(0, 0, GameConstants.Screen.ROOM_WIDTH, GameConstants.Screen.ROOM_HEIGHT, GameConstants.Tile.SIZE, GameConstants.Tile.SIZE, 0xe9efec).setAltFillStyle(0xe9efec).setOutlineStyle().setOrigin(0, 0).setDepth(-100);
 
+    const textbox = this.add.image(GameConstants.Screen.ROOM_WIDTH * 0.5, GameConstants.Screen.ROOM_HEIGHT - 32, 'textbox');
 
     /**
      * Events

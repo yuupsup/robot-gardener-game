@@ -13,9 +13,17 @@ export const GameConstants = {
     SIZE: 16,
     HALF_SIZE: 8
   },
+  Depth: {
+    MESSAGE_BOX: 1000,
+    MESSAGE_BOX_TEXT: 1001
+  },
   Font: {
     FONT: "pixilator",
-    SIZE: 8
+    SIZE: 8,
+    BLACK: {
+      FONT: "pixilator-black",
+      SIZE: 8
+    }
   },
   Direction: {
     NONE: 0,

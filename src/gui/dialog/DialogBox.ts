@@ -1,6 +1,5 @@
 import Phaser from "phaser"
 import {DialogState} from "./DialogState";
-import {GameConstants} from "../../GameConstants";
 
 export default class DialogBox {
   scene:Phaser.Scene;
@@ -43,8 +42,7 @@ export default class DialogBox {
       }
     };
 
-    // this.dialogBox = this.scene.add.rectangle(0, 0, this.props.width, this.props.height, 0x000000, 0.6);
-    this.dialogBox = this.scene.add.rectangle(0, 0, this.props.width, this.props.height, 0xee02A0, 1);
+    this.dialogBox = this.scene.add.rectangle(0, 0, this.props.width, this.props.height, 0xee02A0, 0);
     this.dialogBox.setOrigin(0, 0);
     this.dialogBox.setVisible(false);
     this.scene.add.existing(this.dialogBox);

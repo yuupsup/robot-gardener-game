@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 
 export default class BitmapFontData {
+  font:string;
   charDataMap:Map<string, Map<string, string>>
 
   /**
@@ -8,6 +9,7 @@ export default class BitmapFontData {
    * @param {string} key identifier of the bitmap font that was preloaded in PreLoaderScene.
    */
   constructor(scene:Phaser.Scene, key:string) {
+    this.font = key;
     this.charDataMap = new Map<string, Map<string, string>>();
     // add the data from the xml to the map
     const dom = scene.cache.xml.get(key);
@@ -39,10 +41,13 @@ export default class BitmapFontData {
    * @param {string|number} id character unicode
    * @return {null|number}
    */
-  getCharWidth(id:string|number) : number {
+  getCharWidth(id:string|number, scene:Phaser.Scene) : number {
     if (typeof id !== "string") {
       id = id.toString();
     }
+    /**
+     * Note: old code (xml cache is empty in Phaser +3.50.0)
+     */
     if (this.charDataMap.has(id)) {
       const data = this.charDataMap.get(id);
       if (data) {
@@ -52,8 +57,19 @@ export default class BitmapFontData {
         }
         return 0;
       }
+    } else {
+      /**
+       * New code for versions +3.50.0
+       */
+      const bitmap = scene.cache.bitmapFont.get(this.font);
+      if (bitmap) {
+        const charMap = bitmap.data.chars;
+        const data = charMap[id];
+        if (data) {
+          return data["xAdvance"];
+        }
+      }
     }
-    // todo need to throw exception?
     return 0;
   }
 }
