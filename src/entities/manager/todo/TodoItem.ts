@@ -1,4 +1,4 @@
-import {ColorConstants} from "../../flower/ColorConstants";
+import {ColorConstants} from "../../color/ColorConstants";
 
 export default class TodoItem {
   colors:Array<any>;

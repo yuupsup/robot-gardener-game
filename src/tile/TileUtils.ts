@@ -6,6 +6,7 @@ export const TileUtils = {
 
   Layer: {
     GROUND: "Ground",
+    GRASS: "Grass",
     COLLISION: "Collision"
   },
 

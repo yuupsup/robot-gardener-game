@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import {ColorConstants} from "../flower/ColorConstants";
+import {ColorConstants} from "./ColorConstants";
 import {EntityConstants} from "../EntityConstants";
 
 export default class ColorWheel {

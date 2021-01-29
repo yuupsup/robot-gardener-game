@@ -4,7 +4,7 @@ import GameController from "../../GameController";
 import MoveEntity from "../MoveEntity";
 import TileManager from "../../tile/TileManager";
 import EntityManager from "../manager/EntityManager";
-import ColorWheel from "./ColorWheel";
+import ColorWheel from "../color/ColorWheel";
 import Flower from "../flower/Flower";
 
 /**
@@ -15,6 +15,7 @@ import Flower from "../flower/Flower";
 
 export default class Player extends MoveEntity {
   tileSelector:Phaser.GameObjects.Sprite;
+  // gridSelector:Phaser.GameObjects.Image;
   // color wheel
   colorWheel:ColorWheel;
 
@@ -44,7 +45,12 @@ export default class Player extends MoveEntity {
 
 
     this.tileSelector = scene.add.sprite(config.x, config.y, 'tile-select');
-    this.tileSelector.setDepth(EntityConstants.Depth.TILE_SELECTOR);
+    // this.tileSelector.setDepth(EntityConstants.Depth.TILE_SELECTOR);
+    // this.tileSelector.setVisible(false);
+
+    // this.gridSelector = scene.add.sprite(config.x, config.y, 'grid-selector');
+    // this.gridSelector.alpha = 0.5;
+    // this.gridSelector.setDepth(EntityConstants.Depth.TILE_SELECTOR);
 
     this.colorWheel = new ColorWheel(scene);
 
@@ -59,7 +65,19 @@ export default class Player extends MoveEntity {
   }
 
   createAnimations(scene:Phaser.Scene) {
-
+    scene.anims.create({
+      key: 'player-idle',
+      repeat: -1,
+      frames: this.anims.generateFrameNumbers('player', {start: 0, end: 1}),
+      frameRate: 3
+    });
+    scene.anims.create({
+      key: 'player-walk',
+      repeat: -1,
+      frames: this.anims.generateFrameNumbers('player', {start: 2, end: 5}),
+      frameRate: 4
+    });
+    this.anims.play('player-idle');
   }
 
   preUpdateCall(time:number, delta:number) {
@@ -74,9 +92,11 @@ export default class Player extends MoveEntity {
 
     if (inputManager.isDown(Phaser.Input.Keyboard.KeyCodes.LEFT)) {
       this.hdir -= 1;
+      this.dir = -1;
     }
     if (inputManager.isDown(Phaser.Input.Keyboard.KeyCodes.RIGHT)) {
       this.hdir += 1;
+      this.dir = 1;
     }
 
     if (inputManager.isDown(Phaser.Input.Keyboard.KeyCodes.UP)) {
@@ -85,6 +105,8 @@ export default class Player extends MoveEntity {
     if (inputManager.isDown(Phaser.Input.Keyboard.KeyCodes.DOWN)) {
       this.vdir += 1;
     }
+
+    this.setFlipX(this.dir < 0);
 
     this.getVelocity().x = this.updateSpeed(this.getVelocity().x, this.getVelocityMax().x, this.getAcc(), this.getDec(), this.hdir, true, delta);
     this.getVelocity().y = this.updateSpeed(this.getVelocity().y, this.getVelocityMax().y, this.getAcc(), this.getDec(), this.vdir, true, delta);
@@ -121,11 +143,24 @@ export default class Player extends MoveEntity {
 
   postUpdate(time: number, delta: number) {
     super.postUpdate(time, delta);
-
     const vel = this.getVelocity();
+
+    // animations
+    if (vel.x !== 0 || vel.y !== 0) {
+      this.anims.play('player-walk', true);
+    } else {
+      this.anims.play('player-idle', true);
+    }
+
     const targetPos = (vel.x === 0 && vel.y === 0) ? TileManager.getTileHalfPosition(this.x, this.y) : {x: this.x, y: this.y};
 
-    this.tileSelector.x += (targetPos.x - this.tileSelector.x) / 10;
-    this.tileSelector.y += (targetPos.y - this.tileSelector.y) / 10;
+    // this.tileSelector.x += (targetPos.x - this.tileSelector.x) / 10;
+    // this.tileSelector.y += (targetPos.y - this.tileSelector.y) / 10;
+
+    this.tileSelector.x += (targetPos.x - this.tileSelector.x) / 6;
+    this.tileSelector.y += (targetPos.y - this.tileSelector.y) / 6;
+
+    // this.gridSelector.x = targetPos.x; //+= (targetPos.x - this.gridSelector.x) / 10;
+    // this.gridSelector.y = targetPos.y; //+= (targetPos.y - this.gridSelector.y) / 10;
   }
 }

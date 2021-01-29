@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import GridEntity from "../GridEntity";
 import {EntityConstants} from "../EntityConstants";
-import {ColorConstants} from "./ColorConstants";
+import {ColorConstants} from "../color/ColorConstants";
 import GameController from "../../GameController";
 import Entity from "../Entity";
 import TileManager from "../../tile/TileManager";
@@ -20,7 +20,7 @@ export default class Flower extends GridEntity {
 
   constructor(config) {
     super(config);
-    const scene:Phaser.Scene = config.scene;
+    // const scene:Phaser.Scene = config.scene;
 
     this.entityType = EntityConstants.Type.FLOWER;
     this.setDisplayOrigin(8, 8);
@@ -32,13 +32,16 @@ export default class Flower extends GridEntity {
     }
     if (this.color !== ColorConstants.Color.NONE) {
       // TODO FOR DEBUGGING ONLY!!
-      const anim = scene.anims.get('flower');
-      this.anims.setCurrentFrame(anim.frames[this.color]);
+      // todo used to show visual colors for the flowers
+      // const anim = scene.anims.get('flower');
+      // this.anims.setCurrentFrame(anim.frames[this.color]);
     }
     this.colorChar = ColorConstants.getColorCharacter(this.color);
 
     this.pickup = config.pickup || true;
     this.holder = null;
+
+    this.anims.play('flower');
   }
 
   getEntityDepth(): number {

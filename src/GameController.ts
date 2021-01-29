@@ -10,7 +10,7 @@ import Command from "./pattern/command/Command";
 import CameraManager from "./system/camera/CameraManager";
 import LevelManager from "./system/level/LevelManager";
 import DialogManager from "./gui/dialog/DialogManager";
-import ColorManager from "./entities/flower/ColorManager";
+import ColorManager from "./entities/color/ColorManager";
 
 export default class GameController {
   scenePropMap:Map<string, SceneProperties>; // mapping of scene keys to systems/managers that are needed by the scene

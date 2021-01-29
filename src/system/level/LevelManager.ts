@@ -63,10 +63,12 @@ export default class LevelManager {
   createTilemap() {
     GameController.createTileMapPropertiesForScene(this.scene, {
       map: LevelProperties.getMapForLevel(this.level),
-      tileId: "tileset",
+      tileId: "tileset-grass",
       tileIdExtruded: "tileset-extruded"
     });
-    GameController.instance(this.scene).addTilemapLayer(this.scene, TileUtils.Layer.COLLISION, 0, 0);
+    const gameController = GameController.instance(this.scene);
+    gameController.addTilemapLayer(this.scene, TileUtils.Layer.GRASS, 0, 0);
+    gameController.addTilemapLayer(this.scene, TileUtils.Layer.COLLISION, 0, 0);
   }
 
   createEntities(data:any) {

@@ -65,7 +65,7 @@ export default class LevelScene extends Phaser.Scene {
      * Debugging purposes
      * Displays a grid on the scene
      */
-    this.add.grid(0, 0, GameConstants.Screen.ROOM_WIDTH, GameConstants.Screen.ROOM_HEIGHT, GameConstants.Tile.SIZE, GameConstants.Tile.SIZE, 0xaabee2).setAltFillStyle(0xaaa9ce).setOutlineStyle().setOrigin(0, 0).setDepth(-100);
+    this.add.grid(0, 0, GameConstants.Screen.ROOM_WIDTH, GameConstants.Screen.ROOM_HEIGHT, GameConstants.Tile.SIZE, GameConstants.Tile.SIZE, 0xe9efec).setAltFillStyle(0xe9efec).setOutlineStyle().setOrigin(0, 0).setDepth(-100);
 
 
     /**
@@ -103,9 +103,9 @@ export default class LevelScene extends Phaser.Scene {
      */
     this.anims.create({
       key: 'flower',
-      repeat: 0,
-      frames: this.anims.generateFrameNumbers('flower', {start: 0, end: 6}),
-      frameRate: 0
+      repeat: -1,
+      frames: this.anims.generateFrameNumbers('flower', {start: 0, end: 1}),
+      frameRate: 3
     });
 
     /**

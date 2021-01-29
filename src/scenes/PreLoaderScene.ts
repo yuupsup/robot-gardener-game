@@ -10,7 +10,8 @@ export default class PreLoaderScene extends Phaser.Scene {
      * Tile maps
      */
     this.load.tilemapTiledJSON("map", "assets/maps/map.json");
-    this.load.image("tileset-extruded", "assets/images/tileset-extruded.png");
+    //this.load.image("tileset-extruded", "assets/images/tileset-extruded.png");
+    this.load.image("tileset-extruded", "assets/images/tileset-grass-extruded.png");
 
     /**
      * Levels
@@ -24,11 +25,12 @@ export default class PreLoaderScene extends Phaser.Scene {
     this.load.image("screen-overlay", "assets/images/screen-overlay.png");
     this.load.image("todo-item", "assets/images/todo-item.png");
     this.load.image("cross", "assets/images/cross.png");
+    this.load.image("grid-selector", "assets/images/grid-selector.png");
 
     /**
      * Sprites
      */
-    this.load.spritesheet("player", "assets/images/player-mask.png", {frameWidth: 16, frameHeight: 16});
+    this.load.spritesheet("player", "assets/images/robot.png", {frameWidth: 16, frameHeight: 16});
     this.load.spritesheet("flower", "assets/images/flower.png", {frameWidth: 16, frameHeight: 16});
     // this.load.spritesheet("tile-select", "assets/images/tile-select.png", {frameWidth: 20, frameHeight: 20});
     this.load.spritesheet("tile-select", "assets/images/tile-select2.png", {frameWidth: 16, frameHeight: 16});
