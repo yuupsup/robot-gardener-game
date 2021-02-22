@@ -10,6 +10,10 @@ export const LevelProperties = {
       level: 'level1'
     },
     { // 2
+      map: 'map',
+      level: 'level2'
+    },
+    { // game over
       gameover: true,
       map: 'map',
       level: 'gameover',

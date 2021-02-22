@@ -8,6 +8,7 @@ import ColorWheel from "../color/ColorWheel";
 import Flower from "../flower/Flower";
 import Command from "../../pattern/command/Command";
 import {CommandType} from "../../pattern/command/CommandType";
+import FlowerManager from "../flower/FlowerManager";
 
 /**
  * todo
@@ -18,6 +19,12 @@ import {CommandType} from "../../pattern/command/CommandType";
 export default class Player extends MoveEntity {
   tileSelector:Phaser.GameObjects.Sprite;
   // gridSelector:Phaser.GameObjects.Image;
+  // sprites for the flower placement guide
+  tileGuideLeft:Phaser.GameObjects.Sprite;
+  tileGuideTop:Phaser.GameObjects.Sprite;
+  tileGuideRight:Phaser.GameObjects.Sprite;
+  tileGuideBottom:Phaser.GameObjects.Sprite;
+
   // color wheel
   colorWheel:ColorWheel;
 
@@ -45,8 +52,6 @@ export default class Player extends MoveEntity {
 
     this.ignoreEntityCollision = true;
 
-    this.createAnimations(scene);
-
     this.States.IDLE = 0;
     this.currentState = this.States.IDLE;
 
@@ -57,6 +62,11 @@ export default class Player extends MoveEntity {
     this.tileSelector = scene.add.sprite(config.x, config.y, 'tile-select');
     // this.tileSelector.setDepth(EntityConstants.Depth.TILE_SELECTOR);
     // this.tileSelector.setVisible(false);
+
+    this.tileGuideLeft = scene.add.sprite(config.x, config.y, 'tile-flower-guide').setVisible(false);
+    this.tileGuideTop = scene.add.sprite(config.x, config.y, 'tile-flower-guide').setVisible(false);
+    this.tileGuideRight = scene.add.sprite(config.x, config.y, 'tile-flower-guide').setVisible(false);
+    this.tileGuideBottom = scene.add.sprite(config.x, config.y, 'tile-flower-guide').setVisible(false);
 
     // this.gridSelector = scene.add.sprite(config.x, config.y, 'grid-selector');
     // this.gridSelector.alpha = 0.5;
@@ -72,6 +82,8 @@ export default class Player extends MoveEntity {
     this.tutPickUp = false;
     this.tutPutDown = false;
     this.tutPair = false;
+
+    this.createAnimations(scene);
 
     // this.debugAABB.setVisible(true);
     // this.debugAABB.fillColor = 0x99eeff;
@@ -107,6 +119,17 @@ export default class Player extends MoveEntity {
       frameRate: 4
     });
     this.anims.play('idle');
+
+    /**
+     * Selector
+     */
+    scene.anims.create({
+      key: 'guide',
+      repeat: -1,
+      frames: this.tileGuideLeft.anims.generateFrameNumbers('tile-flower-guide', {start: 0, end: 3}),
+      frameRate: 4
+    });
+    this.tileGuideLeft.anims.play('guide');
   }
 
   preUpdateCall(time:number, delta:number) {
@@ -204,6 +227,45 @@ export default class Player extends MoveEntity {
         }
       }
     }
+    // display the selector where the flower will be created
+    if (this.hold) {
+      // create the adjacent instance
+      const left:any = FlowerManager.getFlowerPropertiesForNewInstance(this.hold, -1,  0, this.scene) // left
+      const top:any = FlowerManager.getFlowerPropertiesForNewInstance(this.hold, 0, -1, this.scene) // top
+      const right:any = FlowerManager.getFlowerPropertiesForNewInstance(this.hold, 1,  0, this.scene) // right
+      const bottom:any = FlowerManager.getFlowerPropertiesForNewInstance(this.hold, 0,  1, this.scene) // bottom
+
+      if (left) {
+        this.tileGuideLeft.setPosition(left.position.x, left.position.y).setVisible(true);
+        this.tileGuideLeft.anims.play('guide', true);
+      } else {
+        this.tileGuideLeft.setVisible(false);
+      }
+      if (top) {
+        this.tileGuideTop.setPosition(top.position.x, top.position.y).setVisible(true);
+        this.tileGuideTop.anims.play('guide', true);
+      } else {
+        this.tileGuideTop.setVisible(false);
+      }
+      if (right) {
+        this.tileGuideRight.setPosition(right.position.x, right.position.y).setVisible(true);
+        this.tileGuideRight.anims.play('guide', true);
+      } else {
+        this.tileGuideRight.setVisible(false);
+      }
+      if (bottom) {
+        this.tileGuideBottom.setPosition(bottom.position.x, bottom.position.y).setVisible(true);
+        this.tileGuideBottom.anims.play('guide', true);
+      } else {
+        this.tileGuideBottom.setVisible(false);
+      }
+    } else {
+      // todo hide the selector
+      this.tileGuideLeft.setVisible(false);
+      this.tileGuideTop.setVisible(false);
+      this.tileGuideRight.setVisible(false);
+      this.tileGuideBottom.setVisible(false);
+    }
   }
 
   postUpdate(time: number, delta: number) {
@@ -220,6 +282,10 @@ export default class Player extends MoveEntity {
     const targetPos = TileManager.getTileHalfPosition(this.x, this.y);
     this.tileSelector.x += (targetPos.x - this.tileSelector.x) / 8;
     this.tileSelector.y += (targetPos.y - this.tileSelector.y) / 8;
+  }
+
+  getGridPosition() : any {
+    return TileManager.getTilePosition(this.x, this.y);
   }
 
   command(command: Command) {

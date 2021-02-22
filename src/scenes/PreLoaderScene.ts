@@ -38,6 +38,7 @@ export default class PreLoaderScene extends Phaser.Scene {
     this.load.spritesheet("flower", "assets/images/flower.png", {frameWidth: 16, frameHeight: 16});
     // this.load.spritesheet("tile-select", "assets/images/tile-select.png", {frameWidth: 20, frameHeight: 20});
     this.load.spritesheet("tile-select", "assets/images/tile-select2.png", {frameWidth: 16, frameHeight: 16});
+    this.load.spritesheet("tile-flower-guide", "assets/images/tile-flower-guide.png", {frameWidth: 16, frameHeight: 16});
     this.load.spritesheet("color-wheel", "assets/images/color-wheel.png", {frameWidth: 17, frameHeight: 17});
     this.load.spritesheet("color-letters", "assets/images/color-letters.png", {frameWidth: 5, frameHeight: 6});
     /**

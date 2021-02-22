@@ -2,13 +2,10 @@ import Phaser from 'phaser';
 import GameController from "../../GameController";
 import MessageGraph from "../../gui/dialog/message/MessageGraph";
 import MessageNode from "../../gui/dialog/message/MessageNode";
-import {GameConstants} from "../../GameConstants";
 import {CommandType} from "../../pattern/command/CommandType";
 import Command from "../../pattern/command/Command";
 import TodoManager from "../../entities/manager/todo/TodoManager";
 import {ColorConstants} from "../../entities/color/ColorConstants";
-import Flower from "../../entities/flower/Flower";
-import {EntityConstants} from "../../entities/EntityConstants";
 
 export default class TutorialManager {
   todoManager:TodoManager;
@@ -66,22 +63,6 @@ export default class TutorialManager {
                 };
               })(this.todoManager));
             } else if (message.createflower) {
-              node.setOnStart((function(scene:Phaser.Scene) {
-                return function() {
-                  new Flower({
-                    scene: scene,
-                    x: 136,
-                    y: 104,
-                    width: 16,
-                    height: 16,
-                    xoffset: 8,
-                    yoffset: 8,
-                    group: EntityConstants.Group.FLOWER,
-                    color: ColorConstants.Color.BLUE,
-                    texture: 'flower'
-                  });
-                };
-              })(scene));
               node.setOnEnd((function(scene:Phaser.Scene) {
                 return function() {
                   const dialogManager = GameController.instance(scene).getDialogManager(scene);
@@ -116,11 +97,6 @@ export default class TutorialManager {
         }
       }
     }
-  }
-
-  update(time:number, delta:number, scene:Phaser.Scene) {
-    // const dialogManager = GameController.instance(scene).getDialogManager(scene);
-    // dialogManager.update(time, delta);
   }
 
   command(command:Command, scene:Phaser.Scene) {

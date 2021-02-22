@@ -212,10 +212,6 @@ export default class LevelManager {
       }
       // item manager
       this.todoManager.update(time, delta);
-      // tutorial manager
-      if (this.tutorial) {
-        this.tutorialManager.update(time, delta, this.scene);
-      }
     } else if (this.complete) {
 
       // need to pause for a second then fade to next level
