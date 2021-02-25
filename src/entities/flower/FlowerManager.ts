@@ -3,8 +3,6 @@ import Phaser from 'phaser';
 import GameController from "../../GameController";
 import {ColorConstants} from "../color/ColorConstants";
 import {EntityConstants} from "../EntityConstants";
-import Command from "../../pattern/command/Command";
-import {CommandType} from "../../pattern/command/CommandType";
 import {GameConstants} from "../../GameConstants";
 import Flower from "./Flower";
 
@@ -19,8 +17,7 @@ export default class FlowerManager {
    * @param ydir
    * @param scene
    */
-  static createAdjacent(flower:Flower, xdir:number, ydir:number, scene:Phaser.Scene) : boolean {
-    const levelManager = GameController.instance(scene).getLevelManager(scene);
+  static createAdjacent(flower:Flower, xdir:number, ydir:number, scene:Phaser.Scene) : string {
     const props = FlowerManager.getFlowerPropertiesForNewInstance(flower, xdir, ydir, scene);
     if (props) {
       const color = props.color;
@@ -43,16 +40,11 @@ export default class FlowerManager {
           color: color,
           texture: 'flower'
         });
-
-        GameController.instance(scene).getCommandManager(scene).add(new Command(CommandType.Level.CHECK_COMBINATION).addData({
-          colorMix: colorMix,
-          index: levelManager.getTodoIndex()
-        }));
-        return true;
+        return colorMix;
         // todo NOTE, the grid positions for the created entity are not stored in the EntityManager until the NEXT update
       }
     }
-    return false;
+    return "";
   }
 
   /**

@@ -1,3 +1,5 @@
+import Phaser from 'phaser';
+
 import GridEntity from "../GridEntity";
 import {EntityConstants} from "../EntityConstants";
 import {ColorConstants} from "../color/ColorConstants";
@@ -8,6 +10,9 @@ import {GameConstants} from "../../GameConstants";
 import {TileUtils} from "../../tile/TileUtils";
 import FlowerManager from "./FlowerManager";
 import Player from "../player/Player";
+import Command from "../../pattern/command/Command";
+import {CommandType} from "../../pattern/command/CommandType";
+import GameController from "../../GameController";
 
 export default class Flower extends GridEntity {
   color:number;
@@ -18,21 +23,22 @@ export default class Flower extends GridEntity {
 
   constructor(config) {
     super(config);
-    // const scene:Phaser.Scene = config.scene;
+    const scene:Phaser.Scene = config.scene;
 
     this.entityType = EntityConstants.Type.FLOWER;
     this.setDisplayOrigin(8, 8);
+    // this.setScale(0);
+    scene.tweens.add({
+      targets: this,
+      props: {
+        displayOriginY: {value: 14, duration: 200, ease: 'Quad.easeOut', yoyo: true}
+      }
+    });
 
     this.color = config.color;
     // throw error
     if (this.color === undefined) {
       throw 'Color is not defined for Flower!';
-    }
-    if (this.color !== ColorConstants.Color.NONE) {
-      // TODO FOR DEBUGGING ONLY!!
-      // todo used to show visual colors for the flowers
-      // const anim = scene.anims.get('flower');
-      // this.anims.setCurrentFrame(anim.frames[this.color]);
     }
     this.colorChar = ColorConstants.getColorCharacter(this.color);
 
@@ -66,13 +72,18 @@ export default class Flower extends GridEntity {
     const tpos = TileManager.getTileHalfPosition(x, y);
     this.setPosition(tpos.x, tpos.y);
 
-    let success = false;
-    // create the adjacent instance
-    success = (!success) ? FlowerManager.createAdjacent(this, -1,  0, this.scene) : true; // left
-    success = (!success) ? FlowerManager.createAdjacent(this, 0, -1, this.scene) : true; // top
-    success = (!success) ? FlowerManager.createAdjacent(this, 1,  0, this.scene) : true; // right
-    success = (!success) ? FlowerManager.createAdjacent(this, 0,  1, this.scene) : true; // bottom
-    return success;
+    const colorMixes = [
+      FlowerManager.createAdjacent(this, -1,  0, this.scene), // left
+      FlowerManager.createAdjacent(this, 0, -1, this.scene),  // top
+      FlowerManager.createAdjacent(this, 1,  0, this.scene),  // right
+      FlowerManager.createAdjacent(this, 0,  1, this.scene)   // bottom
+    ].filter(colorMix => colorMix.length > 0);
+
+    GameController.instance(this.scene).getCommandManager(this.scene).add(new Command(CommandType.Level.CHECK_COMBINATION).addData({
+      colorMixes: colorMixes
+    }));
+
+    return colorMixes.length > 0;
   }
 
   isRBY() : boolean {

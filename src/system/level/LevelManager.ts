@@ -283,31 +283,37 @@ export default class LevelManager {
       this.play = false;
 
       GameController.instance(this.scene).emitEvent(SceneConstants.Events.START_LEVEL);
-    } else if (command.type === CommandType.Level.CHECK_COMBINATION && !this.complete && this.getTodoIndex() === command.data.index) {
+    } else if (command.type === CommandType.Level.CHECK_COMBINATION && !this.complete) {
       // level cannot be completed & the color mix must be for the current item index
-      const colorMix = command.data.colorMix; // holds the colors involved
-      const currentMix = this.todoManager.getMix();
+      const colorMixes = command.data.colorMixes; // holds the colors involved
 
-      if (colorMix === currentMix || colorMix.split("").reverse().join("") === currentMix) {
-        if (this.todoManager.hasNext()) {
-          this.todoManager.next();
-        } else {
-          this.todoManager.done = true;
+      for (let i = 0; i < colorMixes.length; i++) {
+        const currentMix = this.todoManager.getMix();
+        const colorMix = colorMixes[i];
 
-          if (!this.tutorial) {
-            this.complete = true;
+        if (colorMix === currentMix || colorMix.split("").reverse().join("") === currentMix) {
+          if (this.todoManager.hasNext()) {
+            this.todoManager.next();
+          } else {
+            this.todoManager.done = true;
 
-            this.currentLevelModal.setVisible(true);
-            this.currentLevelText.setText("Level Complete").setVisible(true);
+            if (!this.tutorial) {
+              this.complete = true;
 
-            this.endLevelTime = this.endLevelTimeMax;
+              this.currentLevelModal.setVisible(true);
+              this.currentLevelText.setText("Level Complete").setVisible(true);
 
-            // pause entities
-            commandManager.addStatic(CommandType.Entity.PAUSE);
+              this.endLevelTime = this.endLevelTimeMax;
+
+              // pause entities
+              commandManager.addStatic(CommandType.Entity.PAUSE);
+            }
           }
+          this.todoManager.setMoveOut();
+          // todo need to play "correct" sound
+
+          break; // ignore the other mixes included
         }
-        this.todoManager.setMoveOut();
-        // todo need to play "correct" sound
       }
     }
   }
