@@ -126,10 +126,9 @@ export default class Player extends MoveEntity {
     scene.anims.create({
       key: 'guide',
       repeat: -1,
-      frames: this.tileGuideLeft.anims.generateFrameNumbers('tile-flower-guide', {start: 0, end: 3}),
-      frameRate: 4
+      frames: this.tileGuideLeft.anims.generateFrameNumbers('tile-flower-guide', {start: 0, end: 6}),
+      frameRate: 6
     });
-    this.tileGuideLeft.anims.play('guide');
   }
 
   preUpdateCall(time:number, delta:number) {
@@ -228,37 +227,17 @@ export default class Player extends MoveEntity {
       }
     }
     // display the selector where the flower will be created
-    if (this.hold) {
+    if (!flower && this.hold) {
       // create the adjacent instance
       const left:any = FlowerManager.getFlowerPropertiesForNewInstance(this.hold, -1,  0, this.scene) // left
       const top:any = FlowerManager.getFlowerPropertiesForNewInstance(this.hold, 0, -1, this.scene) // top
       const right:any = FlowerManager.getFlowerPropertiesForNewInstance(this.hold, 1,  0, this.scene) // right
       const bottom:any = FlowerManager.getFlowerPropertiesForNewInstance(this.hold, 0,  1, this.scene) // bottom
 
-      if (left) {
-        this.tileGuideLeft.setPosition(left.position.x, left.position.y).setVisible(true);
-        this.tileGuideLeft.anims.play('guide', true);
-      } else {
-        this.tileGuideLeft.setVisible(false);
-      }
-      if (top) {
-        this.tileGuideTop.setPosition(top.position.x, top.position.y).setVisible(true);
-        this.tileGuideTop.anims.play('guide', true);
-      } else {
-        this.tileGuideTop.setVisible(false);
-      }
-      if (right) {
-        this.tileGuideRight.setPosition(right.position.x, right.position.y).setVisible(true);
-        this.tileGuideRight.anims.play('guide', true);
-      } else {
-        this.tileGuideRight.setVisible(false);
-      }
-      if (bottom) {
-        this.tileGuideBottom.setPosition(bottom.position.x, bottom.position.y).setVisible(true);
-        this.tileGuideBottom.anims.play('guide', true);
-      } else {
-        this.tileGuideBottom.setVisible(false);
-      }
+      this.showFlowerGuide(this.tileGuideLeft, left);
+      this.showFlowerGuide(this.tileGuideTop, top);
+      this.showFlowerGuide(this.tileGuideRight, right);
+      this.showFlowerGuide(this.tileGuideBottom, bottom);
     } else {
       // todo hide the selector
       this.tileGuideLeft.setVisible(false);
@@ -286,6 +265,15 @@ export default class Player extends MoveEntity {
 
   getGridPosition() : any {
     return TileManager.getTilePosition(this.x, this.y);
+  }
+
+  showFlowerGuide(tileGuide:Phaser.GameObjects.Sprite, flowerProps:any|null) {
+    if (flowerProps) {
+      tileGuide.setPosition(flowerProps.position.x, flowerProps.position.y).setVisible(true);
+      tileGuide.anims.play('guide', true);
+    } else {
+      tileGuide.setVisible(false);
+    }
   }
 
   command(command: Command) {
